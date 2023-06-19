@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Create Child{% endblock %}
+
+{% block content %}
+<form method="POST">
+  <h3 align="center">Create Child</h3>
+  
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" id="name" name="name" placeholder="Enter name">
+  </div>
+  
+  <div class="form-group">
+    <label for="parent_phone">Telefonnummer der Eltern</label>
+    <input type="tel" class="form-control" id="parent_phone" name="parent_phone" placeholder="Enter parent's phone number">
+  </div>
+  
+  <div class="form-group">
+    <label>Fächer</label><br>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="math" name="subjects[]" value="math">
+      <label class="form-check-label" for="math">Mathe</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="german" name="subjects[]" value="german">
+      <label class="form-check-label" for="german">Deutsch</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="english" name="subjects[]" value="english">
+      <label class="form-check-label" for="english">Englisch</label>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <label for="grade">Klasse</label>
+    <input type="text" class="form-control" id="grade" name="grade" placeholder="Enter grade">
+  </div>
+  
+  <div class="form-group">
+    <label for="school">Schule</label>
+    <input type="text" class="form-control" id="school" name="school" placeholder="Enter school">
+  </div>
+  
+  <div class="form-group">
+    <label>Tage und Zeiten</label><br>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="monday" name="days[]" value="monday">
+      <label class="form-check-label" for="monday">Montag</label>
+      <input type="time" class="form-control" id="monday_start_time" name="monday_start_time" min="14:00" max="18:30">
+      <input type="time" class="form-control" id="monday_end_time" name="monday_end_time" min="14:00" max="18:30">
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="tuesday" name="days[]" value="tuesday">
+      <label class="form-check-label" for="tuesday">Dienstag</label>
+      <input type="time" class="form-control" id="tuesday_start_time" name="tuesday_start_time" min="14:00" max="18:30">
+      <input type="time" class="form-control" id="tuesday_end_time" name="tuesday_end_time" min="14:00" max="18:30">
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="wednesday" name="days[]" value="wednesday">
+      <label class="form-check-label" for="wednesday">Mittwoch</label>
+      <input type="time" class="form-control" id="wednesday_start_time" name="wednesday_start_time" min="14:00" max="18:30">
+      <input type="time" class="form-control" id="wednesday_end_time" name="wednesday_end_time" min="14:00" max="18:30">
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="thursday" name="days[]" value="thursday">
+      <label class="form-check-label" for="thursday">Donnerstag</label>
+      <input type="time" class="form-control" id="thursday_start_time" name="thursday_start_time" min="14:00" max="18:30">
+      <input type="time" class="form-control" id="thursday_end_time" name="thursday_end_time" min="14:00" max="18:30">
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="friday" name="days[]" value="friday">
+      <label class="form-check-label" for="friday">Freitag</label>
+      <input type="time" class="form-control" id="friday_start_time" name="friday_start_time" min="14:00" max="18:30">
+      <input type="time" class="form-control" id="friday_end_time" name="friday_end_time" min="14:00" max="18:30">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="start_date">Startdatum</label>
+    <input type="date" class="form-control" id="start_date" name="start_date">
+  </div>
+  
+  <div class="form-group">
+    <label for="comment">Kommentar</label>
+    <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+  </div>
+  
+  <div class="form-group">
+    <label for="street">Straße</label>
+    <input type="text" class="form-control" id="street" name="street" placeholder="Straße eingeben">
+  </div>
+
+  <div class="form-group">
+    <label for="plz">PLZ</label>
+    <input type="text" class="form-control" id="plz" name="plz" placeholder="PLZ eingeben">
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" class="form-control" id="email" name="email" placeholder="Email eingeben">
+  </div>
+
+  <div class="form-group">
+    <label for="phone">Telefonnummer</label>
+    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Telefonnummer eingeben">
+  </div>
+
+  <div class="form-group">
+    <label for="hours">Wochenstunden</label>
+    <input type="text" class="form-control" id="hours" name="hours" value="{{ child.hours }}" placeholder="Wochenstunden angeben">
+  </div>
+
+  <div class="form-group">
+    <label for="native_language">Muttersprache</label>
+    <input type="text" class="form-control" id="native_language" name="native_language" placeholder="Muttersprache eingeben">
+  </div>
+  
+  <br />
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

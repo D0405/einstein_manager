@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Neuer Lernhelfer{% endblock %}
+
+{% block content %}
+  <h2>Neuer Lernhelfer</h2>
+
+  <form method="POST">
+    <h3 align="center">Create Match</h3>
+  
+    <div class="form-group">
+      <label for="tutor_name">Tutor Name</label>
+      <select class="form-control" id="tutor_name" name="tutor_name">
+        {% for tutor in tutors %}
+          <option value="{{ tutor.name }}">{{ tutor.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  
+    <div class="form-group">
+      <label for="child_name">Child Name</label>
+      <select class="form-control" id="child_name" name="child_name">
+        {% for child in children %}
+          <option value="{{ child.name }}">{{ child.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  
+    <div class="form-group">
+      <label>Days</label><br>
+      {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+      <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" id="{{day}}" name="days[]" value="{{day}}">
+        <label class="form-check-label" for="{{day}}">{{day.capitalize()}}</label>
+      </div>
+      {% endfor %}
+    </div>
+  
+    <div id="availability-fields">
+      <!-- Verfügbarkeitsfelder werden dynamisch hinzugefügt -->
+    </div>
+  
+    <button type="submit" class="btn btn-primary">Create Match</button>
+  </form>
+  
+  <script>
+    const daysCheckboxes = document.querySelectorAll('input[name="days[]"]');
+    const availabilityFieldsContainer = document.getElementById('availability-fields');
+  
+    // Event Listener für Checkboxen hinzufügen
+    daysCheckboxes.forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+        const day = checkbox.value;
+        const availabilityFields = document.getElementById(`${day}_availability_fields`);
+  
+        if (checkbox.checked) {
+          // Wenn Checkbox ausgewählt ist, füge die Felder hinzu
+          if (!availabilityFields) {
+            const newAvailabilityFields = createAvailabilityFields(day);
+            availabilityFieldsContainer.appendChild(newAvailabilityFields);
+          }
+        } else {
+          // Wenn Checkbox abgewählt ist, entferne die Felder
+          if (availabilityFields) {
+            availabilityFields.remove();
+          }
+        }
+      });
+    });
+  
+    function createAvailabilityFields(day) {
+      const availabilityFields = document.createElement('div');
+      availabilityFields.classList.add('form-group');
+      availabilityFields.id = `${day}_availability_fields`;
+  
+      const startTimeLabel = document.createElement('label');
+      startTimeLabel.textContent = `Startzeit (${day})`;
+  
+      const startTimeInput = document.createElement('input');
+      startTimeInput.type = 'time';
+      startTimeInput.id = `${day}_start_time`;
+      startTimeInput.name = `${day}_start_time`;
+      startTimeInput.min = '14:00';
+      startTimeInput.max = '19:00';
+  
+      const endTimeLabel = document.createElement('label');
+      endTimeLabel.textContent = `Endzeit (${day})`;
+  
+      const endTimeInput = document.createElement('input');
+      endTimeInput.type = 'time';
+      endTimeInput.id = `${day}_end_time`;
+      endTimeInput.name = `${day}_end_time`;
+      endTimeInput.min = '14:00';
+      endTimeInput.max = '19:00';
+  
+      availabilityFields.appendChild(startTimeLabel);
+      availabilityFields.appendChild(startTimeInput);
+      availabilityFields.appendChild(endTimeLabel);
+      availabilityFields.appendChild(endTimeInput);
+  
+      return availabilityFields;
+    }
+  </script>
+{% endblock %}

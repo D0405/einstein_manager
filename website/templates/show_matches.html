@@ -1,0 +1,120 @@
+{% block content %}
+  <h1>Matching</h1>
+  <h2>Kalenderwoche {{ current_week }}</h2>
+  <table>
+    <thead>
+      <tr>
+        {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+          <th>{{ day.capitalize() }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for hour in range(15, 20) %}
+        {% set hour_matches = {} %}
+        {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+          {% set day_matches = matches|selectattr('day', '==', day)|selectattr('start_time.hour', '==', hour)|list %}
+          {% set _ = hour_matches.update({day: day_matches}) %}
+        {% endfor %}
+        {% set max_matches = hour_matches.values()|map('length')|max %}
+        {% for index in range(max_matches) %}
+          <tr>
+            {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+            <td data-day="{{ day }}">
+              {% set day_matches = hour_matches[day] %}
+              {% if index < day_matches|length %}
+                <a href="{{ url_for('views.edit_match', match_id=day_matches[index].id) }}" style="text-decoration: none; color: black;"> <!-- URL der Bearbeitungsroute -->
+                  <div class="drag-item" draggable="true"
+                    data-match-id="{{ day_matches[index].id }}"
+                    data-original-day="{{ day }}"
+                    data-start-time="{{ day_matches[index].start_time.strftime('%H:%M') }}"
+                    data-end-time="{{ day_matches[index].end_time.strftime('%H:%M') }}"
+                    style="background-color: {{ tutor_colors[day_matches[index].tutor_id] }}; border: 2px solid {{ tutor_colors[day_matches[index].tutor_id] }}; padding: 10px;">
+                            <strong>Match ID:</strong> {{ day_matches[index].id }}<br>  <!-- Anzeige der Match ID -->
+                    <strong>Tutor:</strong> {{ get_tutor_name_by_id(day_matches[index].tutor_id) }}<br>
+                    <strong>Schüler:</strong> {{ get_child_name_by_id(day_matches[index].child_id) }} <br>
+                    <strong>Startzeit:</strong> {{ day_matches[index].start_time.strftime('%H:%M') }} <br>
+                    <strong>Endzeit:</strong> {{ day_matches[index].end_time.strftime('%H:%M') }}
+                  </div>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+        {% if max_matches > 1 %}
+          <tr><td colspan="5">&nbsp;</td></tr>
+          <tr><td colspan="5">&nbsp;</td></tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', (event) => {
+      let draggedItem = null;
+
+      const prepareDragItem = (item) => {
+        item.addEventListener('dragstart', (event) => {
+          draggedItem = event.target;
+          event.dataTransfer.setData('text/plain', event.target.outerHTML);
+        });
+      };
+
+      Array.from(document.querySelectorAll('.drag-item')).forEach(prepareDragItem);
+
+      Array.from(document.querySelectorAll('td')).forEach(td => {
+        td.addEventListener('dragover', (event) => {
+          event.preventDefault();
+        });
+
+        td.addEventListener('drop', (event) => {
+  event.preventDefault();
+  const day = event.currentTarget.getAttribute('data-day');
+  const itemDay = draggedItem.getAttribute('data-original-day');
+
+  if (day !== itemDay) {
+    const droppedItemHTML = event.dataTransfer.getData('text/plain');
+    draggedItem.parentNode.removeChild(draggedItem);
+
+    // Erstelle ein neues Element aus dem HTML-String
+    const droppedItem = document.createElement('div');
+    droppedItem.innerHTML = droppedItemHTML;
+    event.currentTarget.appendChild(droppedItem.firstChild);  // Füge das Element am Ende der Liste hinzu
+
+    const newDroppedItem = event.currentTarget.lastChild;
+    prepareDragItem(newDroppedItem);
+
+    const matchId = newDroppedItem.getAttribute('data-match-id');
+    const originalDay = newDroppedItem.getAttribute('data-original-day');
+    const startTime = newDroppedItem.getAttribute('data-start-time');
+    const endTime = newDroppedItem.getAttribute('data-end-time');
+    fetch('/update-match-day', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      matchId: matchId,
+      originalDay: originalDay,
+      targetDay: day,
+      startTime: startTime,
+      endTime: endTime
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Match day updated successfully!');
+      location.reload(); // Füge diese Zeile hinzu
+    } else {
+      console.error('Failed to update match day: ' + data.error);
+    }
+  });
+
+    draggedItem = null;
+  }
+});
+      });
+    });
+  </script>
+{% endblock %}

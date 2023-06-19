@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Tutorliste{% endblock %}
+
+{% block content %}
+<h1>Tutorliste</h1>
+
+<ul>
+  {% for tutor in tutors %}
+  <li>
+    <form action="{{ url_for('views.edit_tutor', tutor_id=tutor.id) }}" method="GET">
+      <button type="submit" class="btn btn-link" style="padding: 0;">{{ tutor.name }}</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

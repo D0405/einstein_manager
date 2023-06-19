@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Create Lernhelfer{% endblock %}
+
+{% block content %}
+<form method="POST">
+  <h3 align="center">Create Lernhelfer</h3>
+
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" id="name" name="name" placeholder="Enter name" required>
+  </div>
+
+  <div class="form-group">
+    <label for="birthdate">Geburtsdatum</label>
+    <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+  </div>
+
+  <div class="form-group">
+    <label for="start_date">Startdatum</label>
+    <input type="date" class="form-control" id="start_date" name="start_date" required>
+  </div>
+
+  <div class="form-group">
+    <label for="max_grade">Maximale Klassenstufe</label>
+    <input type="number" class="form-control" id="max_grade" name="max_grade" min="1" max="12" required>
+  </div>
+
+  <div class="form-group">
+    <label for="subjects">Fächer</label>
+    <input type="text" class="form-control" id="subjects" name="subjects" placeholder="Enter subjects" required>
+  </div>
+
+  <div class="form-group">
+    <label for="comment">Kommentar</label>
+    <input type="text" class="form-control" id="comment" name="comment" placeholder="Enter comment" required>
+  </div>
+
+  <div class="form-group">
+    <label for="street">Straße</label>
+    <input type="text" class="form-control" id="street" name="street" placeholder="Enter street" required>
+  </div>
+
+  <div class="form-group">
+    <label for="plz">PLZ</label>
+    <input type="text" class="form-control" id="plz" name="plz" placeholder="Enter PLZ" required>
+  </div>
+
+  <div class="form-group">
+    <label for="email">E-Mail</label>
+    <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+  </div>
+
+  <div class="form-group">
+    <label for="phone">Telefon</label>
+    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter phone" required>
+  </div>
+
+  <div class="form-group">
+    <label for="school_university">Schule / Universität</label>
+    <input type="text" class="form-control" id="school_university" name="school_university" placeholder="Enter school or university" required>
+  </div>
+
+  <div class="form-group">
+    <label for="area">Bereich</label>
+    <input type="text" class="form-control" id="area" name="area" placeholder="Enter area" required>
+  </div>
+
+  <div class="form-group">
+    <label for="semester">Semester</label>
+    <input type="text" class="form-control" id="semester" name="semester" placeholder="Enter semester" required>
+  </div>
+
+  <div class="form-group">
+    <label for="native_language">Muttersprache</label>
+    <input type="text" class="form-control" id="native_language" name="native_language" placeholder="Enter native language" required>
+  </div>
+
+  <div class="form-group">
+    <label for="qualification">Qualifikation</label>
+    <input type="text" class="form-control" id="qualification" name="qualification" placeholder="Enter qualification" required>
+  </div>
+
+  <div class="form-group">
+    <label for="previous_training">Vorherige Ausbildung</label>
+    <input type="text" class="form-control" id="previous_training" name="previous_training" placeholder="Enter previous training" required>
+  </div>
+
+  <div class="form-group">
+    <label for="previous_training_nr">Vorherige Ausbildung Nr.</label>
+    <input type="text" class="form-control" id="previous_training_nr" name="previous_training_nr" placeholder="Enter previous training number" required>
+  </div>
+
+  <div class="form-group">
+    <label for="hours">Wochenstunden</label>
+    <input type="text" class="form-control" id="hours" name="hours" value="{{ tutor.hours }}" placeholder="Wochenstunden angeben">
+  </div>
+
+  <div class="form-group">
+    <label for="wage">Lohn</label>
+    <input type="text" class="form-control" id="wage" name="wage" placeholder="Enter wage" required>
+  </div>
+  
+  <div id="availability-fields">
+    <!-- Hier werden die Zeitfelder dynamisch hinzugefügt -->
+  </div>
+  
+  <script>
+    const daysCheckboxes = document.querySelectorAll('input[name="days[]"]');
+    const availabilityFieldsContainer = document.getElementById('availability-fields');
+    const availabilityFieldsMap = {};
+  
+    daysCheckboxes.forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+        const day = checkbox.value;
+        const isChecked = checkbox.checked;
+  
+        if (isChecked) {
+          if (!availabilityFieldsMap[day]) {
+            const availabilityFields = document.createElement('div');
+            availabilityFields.innerHTML = `
+              <div class="form-group">
+                <label for="${day}_start_time">Startzeit (${day})</label>
+                <input type="time" class="form-control" id="${day}_start_time" name="${day}_start_time" min="14:00" max="19:00">
+              </div>
+              <div class="form-group">
+                <label for="${day}_end_time">Endzeit (${day})</label>
+                <input type="time" class="form-control" id="${day}_end_time" name="${day}_end_time" min="14:00" max="19:00">
+              </div>
+            `;
+  
+            availabilityFieldsMap[day] = availabilityFields;
+            availabilityFieldsContainer.appendChild(availabilityFields);
+          }
+        } else {
+          if (availabilityFieldsMap[day]) {
+            availabilityFieldsMap[day].remove();
+            delete availabilityFieldsMap[day];
+          }
+        }
+      });
+    });
+  </script>
+  
+  
+  
+  <div class="form-group">
+    <label for="max_grade">Maximale Klassenstufe</label>
+    <input type="number" class="form-control" id="max_grade" name="max_grade" min="1" max="12">
+  </div>
+  
+  <div class="form-group">
+    <label>Fächer</label><br>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="math" name="subjects[]" value="math">
+      <label class="form-check-label" for="math">Mathe</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="german" name="subjects[]" value="german">
+      <label class="form-check-label" for="german">Deutsch</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="english" name="subjects[]" value="english">
+      <label class="form-check-label" for="english">Englisch</label>
+    </div>
+  </div>
+  
+  <br />
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

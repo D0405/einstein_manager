@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Child{% endblock %}
+
+{% block content %}
+<form method="POST">
+  <h3 align="center">Edit Child</h3>
+
+  
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" id="name" name="name" value="{{ child.name }}" placeholder="Enter name">
+  </div>
+  
+  <div class="form-group">
+    <label for="grade">Grade</label>
+    <input type="text" class="form-control" id="grade" name="grade" value="{{ child.grade }}" placeholder="Enter grade">
+  </div>
+
+  <div class="form-group">
+    <label for="school">School</label>
+    <input type="text" class="form-control" id="school" name="school" value="{{ child.school }}" placeholder="Enter school">
+  </div>
+
+  <div class="form-group">
+    <label>Days</label><br>
+    {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="{{day}}" name="days[]" value="{{day}}" {% if child_has_day(child, day) %} checked {% endif %}>
+      <label class="form-check-label" for="{{day}}">{{day.capitalize()}}</label>
+    </div>
+    {% endfor %}
+  </div>
+  
+  <div id="availability-fields">
+    <!-- Verfügbarkeitsfelder werden dynamisch hinzugefügt -->
+    {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+      {% if child_has_day(child, day) %}
+        {% set start_time = get_child_time(child, day, 'start_time') %}
+        {% set end_time = get_child_time(child, day, 'end_time') %}
+        <div class="form-group" id="{{ day }}_availability_fields">
+          <label for="{{ day }}_start_time">Startzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_start_time" name="{{ day }}_start_time" min="14:00" max="19:00" value="{{ start_time|default('') }}">
+        </div>
+        <div class="form-group" id="{{ day }}_availability_fields_end">
+          <label for="{{ day }}_end_time">Endzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_end_time" name="{{ day }}_end_time" min="14:00" max="19:00" value="{{ end_time|default('') }}">
+        </div>
+      {% else %}
+        <div class="form-group" style="display: none;" id="{{ day }}_availability_fields">
+          <label for="{{ day }}_start_time">Startzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_start_time" name="{{ day }}_start_time" min="14:00" max="19:00" value="">
+        </div>
+        <div class="form-group" style="display: none;" id="{{ day }}_availability_fields_end">
+          <label for="{{ day }}_end_time">Endzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_end_time" name="{{ day }}_end_time" min="14:00" max="19:00" value="">
+        </div>
+      {% endif %}
+    {% endfor %}
+
+  <div class="form-group">
+    <label>Subjects</label><br>
+    {% for subject in ['math', 'german', 'english'] %}
+      <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" id="{{subject}}" name="subjects[]" value="{{subject}}" {% if subject in child.subjects.split(',') %} checked {% endif %}>
+        <label class="form-check-label" for="{{subject}}">{{subject.capitalize()}}</label>
+      </div>
+    {% endfor %}
+  </div>
+
+
+  <div class="form-group">
+    <label for="start_date">Startdatum</label>
+    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ child.start_date }}">
+  </div>
+  
+  <div class="form-group">
+    <label for="comment">Kommentar</label>
+    <textarea class="form-control" id="comment" name="comment" rows="3">{{ child.comment }}</textarea>
+  </div>
+  
+  <div class="form-group">
+    <label for="street">Straße</label>
+    <input type="text" class="form-control" id="street" name="street" value="{{ child.street }}" placeholder="Straße eingeben">
+  </div>
+
+  <div class="form-group">
+    <label for="plz">PLZ</label>
+    <input type="text" class="form-control" id="plz" name="plz" value="{{ child.plz }}" placeholder="PLZ eingeben">
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" class="form-control" id="email" name="email" value="{{ child.email }}" placeholder="Email eingeben">
+  </div>
+
+  <div class="form-group">
+    <label for="phone">Telefonnummer</label>
+    <input type="tel" class="form-control" id="phone" name="phone" value="{{ child.phone }}" placeholder="Telefonnummer eingeben">
+  </div>
+
+  <div class="form-group">
+    <label for="hours">Wochenstunden</label>
+    <input type="text" class="form-control" id="hours" name="hours" value="{{ child.hours }}" placeholder="Wochenstunden angeben">
+  </div>
+
+  <div class="form-group">
+    <label for="native_language">Muttersprache</label>
+    <input type="text" class="form-control" id="native_language" name="native_language" value="{{ child.native_language }}" placeholder="Muttersprache eingeben">
+  </div>
+
+
+  <br />
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+
+<script>
+  const daysCheckboxes = document.querySelectorAll('input[name="days[]"]');
+  const availabilityFieldsContainer = document.getElementById('availability-fields');
+  const availabilityFieldsMap = {};
+
+  // Event Listener für Checkboxen hinzufügen
+  daysCheckboxes.forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+      const day = checkbox.value;
+      const availabilityFields = document.getElementById(`${day}_availability_fields`);
+      const availabilityFieldsEnd = document.getElementById(`${day}_availability_fields_end`);
+
+      if (checkbox.checked) {
+        // Wenn Checkbox ausgewählt ist, füge die Felder hinzu
+        if (!availabilityFields) {
+          const newAvailabilityFields = createAvailabilityFields(day);
+          availabilityFieldsContainer.appendChild(newAvailabilityFields);
+        } else {
+          availabilityFields.style.display = 'block';
+        }
+        if (!availabilityFieldsEnd) {
+          const newAvailabilityFieldsEnd = createAvailabilityFieldsEnd(day);
+          availabilityFieldsContainer.appendChild(newAvailabilityFieldsEnd);
+        } else {
+          availabilityFieldsEnd.style.display = 'block';
+        }
+      } else {
+        // Wenn Checkbox abgewählt ist, entferne die Felder
+        if (availabilityFields) {
+          availabilityFields.style.display = 'none';
+        }
+        if (availabilityFieldsEnd) {
+          availabilityFieldsEnd.style.display = 'none';
+        }
+      }
+    });
+  });
+
+  function createAvailabilityFields(day) {
+    const availabilityFields = document.createElement('div');
+    availabilityFields.classList.add('form-group');
+    availabilityFields.id = `${day}_availability_fields`;
+
+    const startTimeLabel = document.createElement('label');
+    startTimeLabel.textContent = `Startzeit (${day})`;
+
+    const startTimeInput = document.createElement('input');
+    startTimeInput.type = 'time';
+    startTimeInput.id = `${day}_start_time`;
+    startTimeInput.name = `${day}_start_time`;
+    startTimeInput.min = '14:00';
+    startTimeInput.max = '19:00';
+    startTimeInput.value = '';
+
+    availabilityFields.appendChild(startTimeLabel);
+    availabilityFields.appendChild(startTimeInput);
+
+    return availabilityFields;
+  }
+
+  function createAvailabilityFieldsEnd(day) {
+    const availabilityFieldsEnd = document.createElement('div');
+    availabilityFieldsEnd.classList.add('form-group');
+    availabilityFieldsEnd.id = `${day}_availability_fields_end`;
+
+    const endTimeLabel = document.createElement('label');
+    endTimeLabel.textContent = `Endzeit (${day})`;
+
+    const endTimeInput = document.createElement('input');
+    endTimeInput.type = 'time';
+    endTimeInput.id = `${day}_end_time`;
+    endTimeInput.name = `${day}_end_time`;
+    endTimeInput.min = '14:00';
+    endTimeInput.max = '19:00';
+    endTimeInput.value = '';
+
+    availabilityFieldsEnd.appendChild(endTimeLabel);
+    availabilityFieldsEnd.appendChild(endTimeInput);
+
+    return availabilityFieldsEnd;
+  }
+</script>
+
+{% endblock %}
+
+
+

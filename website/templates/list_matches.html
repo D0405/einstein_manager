@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}List Matches{% endblock %}
+
+{% block content %}
+  <h1>List Matches</h1>
+
+  <ul>
+    {% for match in matches %}
+      <li>
+        <a href="{{ url_for('views.edit_match', match_id=match.id) }}">
+          Tutor: {% for tutor in tutors %}{% if tutor.id == match.tutor_id %}{{ tutor.name }}{% endif %}{% endfor %}
+          - Child: {% for child in children %}{% if child.id == match.child_id %}{{ child.name }}{% endif %}{% endfor %}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

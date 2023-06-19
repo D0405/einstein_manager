@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<style>
+.button-container {
+  margin-bottom: 10px;
+}
+</style>
+
+<div class="container">
+  <h1 class="text-center">Hallo Einstein Manager</h1>
+
+  <div class="row justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="button-container">
+        <a href="/list-tutors" class="btn btn-primary btn-block">List Tutors</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="button-container">
+        <a href="/create-lernhelfer" class="btn btn-primary btn-block">Create Lernhelfer</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="button-container">
+        <a href="/list-childreen" class="btn btn-primary btn-block">List Childreen</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="button-container">
+        <a href="/create-child" class="btn btn-primary btn-block">Create Child</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="button-container">
+        <a href="/match-random" class="btn btn-primary btn-block">Match random</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="button-container">
+        <a href="/create-match" class="btn btn-primary btn-block">Create Match</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="button-container">
+        <a href="/list-matches" class="btn btn-primary btn-block">Matches sehen und bearbeiten</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-sm-6 col-md-4">
+      <div class="button-container">
+        <a href="/show-matches" class="btn btn-primary btn-block">Show Matches</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

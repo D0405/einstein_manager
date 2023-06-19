@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Match{% endblock %}
+
+
+
+{% block content %}
+<h2>Liste der Matches</h2>
+{% for match in matches %}
+    <div>
+        <a href="{{ url_for('views.edit_match', match_id=match.id) }}">{{ match.tutor_name }} - {{ match.child_name }}</a>
+        <form action="{{ url_for('views.delete_match', match_id=match.id) }}" method="POST" style="display: inline;">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this match?');">
+        </form>
+    </div>
+{% endfor %}
+
+
+<form method="POST">
+  <h3 align="center">Edit Match</h3>
+
+  <div class="form-group">
+    <label for="tutor_name">Tutor Name</label>
+    <select class="form-control" id="tutor_name" name="tutor_name">
+      {% for tutor in tutors %}
+        <option value="{{ tutor.name }}" {% if tutor.name == match.tutor_name %} selected {% endif %}>{{ tutor.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+
+  <div class="form-group">
+    <label for="child_name">Child Name</label>
+    <select class="form-control" id="child_name" name="child_name">
+      {% for child in children %}
+        <option value="{{ child.name }}" {% if child.name == match.child_name %} selected {% endif %}>{{ child.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Days</label><br>
+    {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="{{day}}" name="days[]" value="{{day}}" {% if match_has_day(match, day) %} checked {% endif %}>
+      <label class="form-check-label" for="{{day}}">{{day.capitalize()}}</label>
+    </div>
+    {% endfor %}
+  </div>
+  <div id="availability-fields">
+    <!-- Verfügbarkeitsfelder werden dynamisch hinzugefügt -->
+    {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+      {% if match_has_day(match, day) %}
+        {% set start_time = get_match_time(match, day, 'start_time') %}
+        {% set end_time = get_match_time(match, day, 'end_time') %}
+        <div class="form-group" id="{{ day }}_availability_fields">
+          <label for="{{ day }}_start_time">Startzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_start_time" name="{{ day }}_start_time" min="14:00" max="19:00" value="{{ start_time|default('') }}">
+        </div>
+        <div class="form-group" id="{{ day }}_availability_fields_end">
+          <label for="{{ day }}_end_time">Endzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_end_time" name="{{ day }}_end_time" min="14:00" max="19:00" value="{{ end_time|default('') }}">
+        </div>
+      {% else %}
+        <div class="form-group" style="display: none;" id="{{ day }}_availability_fields">
+          <label for="{{ day }}_start_time">Startzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_start_time" name="{{ day }}_start_time" min="14:00" max="19:00" value="">
+        </div>
+        <div class="form-group" style="display: none;" id="{{ day }}_availability_fields_end">
+          <label for="{{ day }}_end_time">Endzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_end_time" name="{{ day }}_end_time" min="14:00" max="19:00" value="">
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    <button type="submit" class="btn btn-danger" formaction="{{ url_for('views.delete_match', match_id=match.id) }}" onclick="return confirm('Are you sure you want to delete this match?');">Match löschen</button>
+    <button type="submit" class="btn btn-primary" formaction="{{ url_for('views.edit_match', match_id=match.id) }}">Änderungen speichern</button>
+
+
+  </div>
+  
+  <script>
+    const daysCheckboxes = document.querySelectorAll('input[name="days[]"]');
+    const availabilityFieldsContainer = document.getElementById('availability-fields');
+    const availabilityFieldsMap = {};
+  
+    // Event Listener für Checkboxen hinzufügen
+    daysCheckboxes.forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+        const day = checkbox.value;
+        const availabilityFields = document.getElementById(`${day}_availability_fields`);
+        const availabilityFieldsEnd = document.getElementById(`${day}_availability_fields_end`);
+  
+        if (checkbox.checked) {
+          // Wenn Checkbox ausgewählt ist, füge die Felder hinzu
+          if (!availabilityFields) {
+            const newAvailabilityFields = createAvailabilityFields(day);
+            availabilityFieldsContainer.appendChild(newAvailabilityFields);
+          } else {
+            availabilityFields.style.display = 'block';
+          }
+          if (!availabilityFieldsEnd) {
+            const newAvailabilityFieldsEnd = createAvailabilityFieldsEnd(day);
+            availabilityFieldsContainer.appendChild(newAvailabilityFieldsEnd);
+          } else {
+            availabilityFieldsEnd.style.display = 'block';
+          }
+        } else {
+          // Wenn Checkbox abgewählt ist, entferne die Felder
+          if (availabilityFields) {
+            availabilityFields.style.display = 'none';
+          }
+          if (availabilityFieldsEnd) {
+            availabilityFieldsEnd.style.display = 'none';
+          }
+        }
+      });
+    });
+  
+    function createAvailabilityFields(day) {
+      const availabilityFields = document.createElement('div');
+      availabilityFields.classList.add('form-group');
+      availabilityFields.id = `${day}_availability_fields`;
+  
+      const startTimeLabel = document.createElement('label');
+      startTimeLabel.textContent = `Startzeit (${day})`;
+  
+      const startTimeInput = document.createElement('input');
+      startTimeInput.type = 'time';
+      startTimeInput.id = `${day}_start_time`;
+      startTimeInput.name = `${day}_start_time`;
+      startTimeInput.min = '14:00';
+      startTimeInput.max = '19:00';
+      startTimeInput.value = '';
+  
+      availabilityFields.appendChild(startTimeLabel);
+      availabilityFields.appendChild(startTimeInput);
+  
+      return availabilityFields;
+    }
+  
+    function createAvailabilityFieldsEnd(day) {
+      const availabilityFieldsEnd = document.createElement('div');
+      availabilityFieldsEnd.classList.add('form-group');
+      availabilityFieldsEnd.id = `${day}_availability_fields_end`;
+  
+      const endTimeLabel = document.createElement('label');
+      endTimeLabel.textContent = `Endzeit (${day})`;
+  
+      const endTimeInput = document.createElement('input');
+      endTimeInput.type = 'time';
+      endTimeInput.id = `${day}_end_time`;
+      endTimeInput.name = `${day}_end_time`;
+      endTimeInput.min = '14:00';
+      endTimeInput.max = '19:00';
+      endTimeInput.value = '';
+  
+      availabilityFieldsEnd.appendChild(endTimeLabel);
+      availabilityFieldsEnd.appendChild(endTimeInput);
+  
+      return availabilityFieldsEnd;
+    }
+  </script>
+
+{% endblock %}

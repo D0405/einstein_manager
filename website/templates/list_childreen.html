@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Schülerliste{% endblock %}
+
+{% block content %}
+<h1>Schülerliste</h1>
+
+<ul>
+  {% for child in childreen %}
+  <li>
+    <a href="{{ url_for('views.edit_child', child_id=child.id) }}">{{ child.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

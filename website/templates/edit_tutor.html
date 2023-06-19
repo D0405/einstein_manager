@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Lernhelfer{% endblock %}
+
+{% block content %}
+<form method="POST">
+  <h3 align="center">Edit Lernhelfer</h3>
+  
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" id="name" name="name" value="{{ tutor.name }}" placeholder="Enter name">
+  </div>
+  
+  <div class="form-group">
+    <label for="birthdate">Geburtsdatum</label>
+    <input type="date" class="form-control" id="birthdate" name="birthdate" value="{{ tutor.birthdate }}">
+  </div>
+  
+  <div class="form-group">
+    <label>Days</label><br>
+    {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="{{day}}" name="availability[]" value="{{day}}" {% if tutor_has_day(tutor, day) %} checked {% endif %}>
+      <label class="form-check-label" for="{{day}}">{{day.capitalize()}}</label>
+    </div>
+    {% endfor %}
+  </div>
+  
+  <div id="availability-fields">
+    <!-- Verfügbarkeitsfelder werden dynamisch hinzugefügt -->
+    {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
+      {% if tutor_has_day(tutor, day) %}
+        {% set start_time = get_tutor_time(tutor, day, 'start_time') %}
+        {% set end_time = get_tutor_time(tutor, day, 'end_time') %}
+        <div class="form-group" id="{{ day }}_availability_fields">
+          <label for="{{ day }}_start_time">Startzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_start_time" name="{{ day }}_start_time" min="14:00" max="19:00" value="{{ start_time|default('') }}">
+        </div>
+        <div class="form-group" id="{{ day }}_availability_fields_end">
+          <label for="{{ day }}_end_time">Endzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_end_time" name="{{ day }}_end_time" min="14:00" max="19:00" value="{{ end_time|default('') }}">
+        </div>
+      {% else %}
+        <div class="form-group" style="display: none;" id="{{ day }}_availability_fields">
+          <label for="{{ day }}_start_time">Startzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_start_time" name="{{ day }}_start_time" min="14:00" max="19:00" value="">
+        </div>
+        <div class="form-group" style="display: none;" id="{{ day }}_availability_fields_end">
+          <label for="{{ day }}_end_time">Endzeit ({{ day }})</label>
+          <input type="time" class="form-control" id="{{ day }}_end_time" name="{{ day }}_end_time" min="14:00" max="19:00" value="">
+        </div>
+      {% endif %}
+    {% endfor %}
+
+  <div class="form-group">
+    <label for="max_grade">Maximale Klassenstufe</label>
+    <input type="number" class="form-control" id="max_grade" name="max_grade" min="1" max="12" value="{{ tutor.max_grade }}">
+  </div>
+  
+  <div class="form-group">
+    <label for="subjects">Fächer</label>
+    <input type="text" class="form-control" id="subjects" name="subjects" value="{{ tutor.subjects }}" placeholder="Enter subjects">
+  </div>
+  
+  <div class="form-group">
+    <label for="availability_comment">Kommentar zur Verfügbarkeit</label>
+    <textarea class="form-control" id="availability_comment" name="availability_comment" rows="4">{{ tutor.availability_comment }}</textarea>
+  </div>
+  
+  <div class="form-group">
+    <label for="street">Straße</label>
+    <input type="text" class="form-control" id="street" name="street" value="{{ tutor.street }}" placeholder="Enter street">
+  </div>
+  
+  <div class="form-group">
+    <label for="plz">PLZ</label>
+    <input type="text" class="form-control" id="plz" name="plz" value="{{ tutor.plz }}" placeholder="Enter PLZ">
+  </div>
+  
+  <div class="form-group">
+    <label for="email">E-Mail</label>
+    <input type="email" class="form-control" id="email" name="email" value="{{ tutor.email }}" placeholder="Enter email">
+  </div>
+  
+  <div class="form-group">
+    <label for="phone">Telefonnummer</label>
+    <input type="tel" class="form-control" id="phone" name="phone" value="{{ tutor.phone }}" placeholder="Enter phone number">
+  </div>
+  
+  <div class="form-group">
+    <label for="school_university">Schule/Universität</label>
+    <input type="text" class="form-control" id="school_university" name="school_university" value="{{ tutor.school_university }}" placeholder="Enter school/university">
+  </div>
+  
+  <div class="form-group">
+    <label for="area">Bereich</label>
+    <input type="text" class="form-control" id="area" name="area" value="{{ tutor.area }}" placeholder="Enter area">
+  </div>
+  
+  <div class="form-group">
+    <label for="semester">Semester</label>
+    <input type="text" class="form-control" id="semester" name="semester" value="{{ tutor.semester }}" placeholder="Enter semester">
+  </div>
+  
+  <div class="form-group">
+    <label for="native_language">Muttersprache</label>
+    <input type="text" class="form-control" id="native_language" name="native_language" value="{{ tutor.native_language }}" placeholder="Enter native language">
+  </div>
+  
+  <div class="form-group">
+    <label for="qualification">Qualifikation</label>
+    <input type="text" class="form-control" id="qualification" name="qualification" value="{{ tutor.qualification }}" placeholder="Enter qualification">
+  </div>
+  
+  <div class="form-group">
+    <label for="previous_training">Vorherige Ausbildung</label>
+    <input type="text" class="form-control" id="previous_training" name="previous_training" value="{{ tutor.previous_training }}" placeholder="Enter previous training">
+  </div>
+  
+  <div class="form-group">
+    <label for="previous_training_nr">Nummer der vorherigen Ausbildung</label>
+    <input type="text" class="form-control" id="previous_training_nr" name="previous_training_nr" value="{{ tutor.previous_training_nr }}" placeholder="Enter previous training number">
+  </div>
+  
+  <div class="form-group">
+    <label for="wage">Stundenlohn</label>
+    <input type="text" class="form-control" id="wage" name="wage" value="{{ tutor.wage }}" placeholder="Enter wage">
+  </div>
+
+  <div class="form-group">
+    <label for="hours">Wochenstunden</label>
+    <input type="text" class="form-control" id="hours" name="hours" value="{{ tutor.hours }}" placeholder="Wochenstunden angeben">
+  </div>
+
+  <br />
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<script>
+  const daysCheckboxes = document.querySelectorAll('input[name="availability[]"]');
+  const availabilityFieldsContainer = document.getElementById('availability-fields');
+  const availabilityFieldsMap = {};
+
+  // Event Listener für Checkboxen hinzufügen
+  daysCheckboxes.forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+      const day = checkbox.value;
+      const availabilityFields = document.getElementById(`${day}_availability_fields`);
+      const availabilityFieldsEnd = document.getElementById(`${day}_availability_fields_end`);
+
+      if (checkbox.checked) {
+        // Wenn Checkbox ausgewählt ist, füge die Felder hinzu
+        if (!availabilityFields) {
+          const newAvailabilityFields = createAvailabilityFields(day);
+          availabilityFieldsContainer.appendChild(newAvailabilityFields);
+        } else {
+          availabilityFields.style.display = 'block';
+        }
+        if (!availabilityFieldsEnd) {
+          const newAvailabilityFieldsEnd = createAvailabilityFieldsEnd(day);
+          availabilityFieldsContainer.appendChild(newAvailabilityFieldsEnd);
+        } else {
+          availabilityFieldsEnd.style.display = 'block';
+        }
+      } else {
+        // Wenn Checkbox abgewählt ist, entferne die Felder
+        if (availabilityFields) {
+          availabilityFields.style.display = 'none';
+        }
+        if (availabilityFieldsEnd) {
+          availabilityFieldsEnd.style.display = 'none';
+        }
+      }
+    });
+  });
+
+  function createAvailabilityFields(day) {
+    const availabilityFields = document.createElement('div');
+    availabilityFields.classList.add('form-group');
+    availabilityFields.id = `${day}_availability_fields`;
+
+    const startTimeLabel = document.createElement('label');
+    startTimeLabel.textContent = `Startzeit (${day})`;
+
+    const startTimeInput = document.createElement('input');
+    startTimeInput.type = 'time';
+    startTimeInput.id = `${day}_start_time`;
+    startTimeInput.name = `${day}_start_time`;
+    startTimeInput.min = '14:00';
+    startTimeInput.max = '19:00';
+    startTimeInput.value = '';
+
+    availabilityFields.appendChild(startTimeLabel);
+    availabilityFields.appendChild(startTimeInput);
+
+    return availabilityFields;
+  }
+
+  function createAvailabilityFieldsEnd(day) {
+    const availabilityFieldsEnd = document.createElement('div');
+    availabilityFieldsEnd.classList.add('form-group');
+    availabilityFieldsEnd.id = `${day}_availability_fields_end`;
+
+    const endTimeLabel = document.createElement('label');
+    endTimeLabel.textContent = `Endzeit (${day})`;
+
+    const endTimeInput = document.createElement('input');
+    endTimeInput.type = 'time';
+    endTimeInput.id = `${day}_end_time`;
+    endTimeInput.name = `${day}_end_time`;
+    endTimeInput.min = '14:00';
+    endTimeInput.max = '19:00';
+    endTimeInput.value = '';
+
+    availabilityFieldsEnd.appendChild(endTimeLabel);
+    availabilityFieldsEnd.appendChild(endTimeInput);
+
+    return availabilityFieldsEnd;
+  }
+</script>
+
+{% endblock %}
