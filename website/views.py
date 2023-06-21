@@ -51,7 +51,6 @@ def add_tutor():
         native_language = request.form.get('native_language')
         qualification = request.form.get('qualification')
         previous_training = request.form.get('previous_training')
-        previous_training_nr = request.form.get('previous_training_nr')
         wage = request.form.get('wage')
         hours = request.form.get('hours')
 
@@ -92,7 +91,7 @@ def add_tutor():
                 comment=comment, street=street, plz=plz, email=email, phone=phone,
                 school_university=school_university, area=area, semester=semester,
                 native_language=native_language, qualification=qualification,
-                previous_training=previous_training, previous_training_nr=previous_training_nr, wage=wage,
+                previous_training=previous_training, wage=wage,
                 availability=availabilities, hours=hours
             )
 
@@ -114,7 +113,14 @@ def add_child():
         grade = request.form.get('grade')
         school = request.form.get('school')
         days = request.form.getlist('days[]')
-        start_date = request.form.get('start_date')
+        start_date_str = request.form.get('start_date')
+        year, month, day = map(int, start_date_str.split('-'))
+
+        # Create the start_date object using the extracted values
+        start_date = date(year, month, day)
+
+
+
         comment = request.form.get('comment')
         street = request.form.get('street')
         plz = request.form.get('plz')
@@ -170,7 +176,7 @@ def addFakes():
     fake = Faker('de_DE')  # German locale
 
     # Define subjects
-    subjects = ['Mathematik', 'Englisch', 'Deutsch']
+    subjects = ['mathe', 'englisch', 'deutsch']
 
     # Define days
     days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
@@ -188,13 +194,16 @@ def addFakes():
         tutor_start_minute = start_minute
         tutor_end_minute = end_minute
 
+        num_subjects = random.randint(1, 3)
+
+
         tutor = Tutor(
             name=fake.name(),
             birthdate=fake.date_of_birth(minimum_age=18, maximum_age=65),
             start_date=fake.date_between(start_date='-2y', end_date='today'),
             max_grade=random.randint(1, 13),
             hours = random.choice([2, 4, 6]),
-            subjects=random.choice(subjects),
+            subjects= ','.join(random.sample(subjects, num_subjects)),
             comment=fake.text(),
             street=fake.street_name(),
             plz=fake.postcode(),
@@ -206,7 +215,6 @@ def addFakes():
             native_language=fake.language_name(),
             qualification=fake.job(),
             previous_training=fake.job(),
-            previous_training_nr=str(random.randint(1, 5)),
             wage=str(random.randint(10, 50)),
         )
         selected_days = random.sample(days, 4)  # Select two random days
@@ -247,11 +255,12 @@ def addFakes():
         child_end_hour = end_hour
         child_start_minute = start_minute
         child_end_minute = end_minute
+        num_subjects = random.randint(1, 3)
 
         child = Child(
-            name=fake.first_name(),
+            name=fake.first_name() + " " + fake.last_name(),
             parent_phone=fake.phone_number(),
-            subjects=random.choice(subjects),
+            subjects= ','.join(random.sample(subjects, num_subjects)),
             grade=str(random.randint(1, 13)),
             hours= 2, #str(random.randint(2, 4)),
             school=fake.company(),
@@ -826,7 +835,6 @@ def print_tutors():
             print(f"Muttersprache: {tutor.native_language}")
             print(f"Qualifikation: {tutor.qualification}")
             print(f"Vorherige Ausbildung: {tutor.previous_training}")
-            print(f"Nummer der vorherigen Ausbildung: {tutor.previous_training_nr}")
             print(f"Stundenlohn: {tutor.wage}")
             
             print("Verfügbarkeiten:")
@@ -923,7 +931,6 @@ def edit_tutor(tutor_id):
         tutor.native_language = request.form.get('native_language')
         tutor.qualification = request.form.get('qualification')
         tutor.previous_training = request.form.get('previous_training')
-        tutor.previous_training_nr = request.form.get('previous_training_nr')
         tutor.wage = request.form.get('wage')
 
         db.session.commit()
@@ -1131,3 +1138,31 @@ def delete_match(match_id):
     db.session.commit()
     flash('Match has been deleted!', category='success')
     return redirect(url_for('views.list_matches'))
+
+@views.route('/delete-child/<int:child_id>', methods=['POST'])
+def delete_child(child_id):
+    child = Child.query.get_or_404(child_id)
+
+    # Lösche zugehörige Matches
+    matches = Match.query.filter_by(child_id=child_id).all()
+    for match in matches:
+        db.session.delete(match)
+        
+    # Lösche den Schüler
+    db.session.delete(child)
+    db.session.commit()
+    return redirect(url_for('views.list_childreen'))  # leitet den Benutzer zur Indexseite um
+
+@views.route('/delete-tutor/<int:tutor_id>', methods=['POST'])
+def delete_tutor(tutor_id):
+    tutor = Tutor.query.get_or_404(tutor_id)
+
+    # Lösche zugehörige Matches
+    matches = Match.query.filter_by(tutor_id=tutor_id).all()
+    for match in matches:
+        db.session.delete(match)
+        
+    # Lösche den Schüler
+    db.session.delete(tutor)
+    db.session.commit()
+    return redirect(url_for('views.list_tutors'))  # leitet den Benutzer zur Indexseite um

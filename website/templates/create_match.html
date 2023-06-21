@@ -1,30 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}Neuer Lernhelfer{% endblock %}
+{% block title %}Match erstellen{% endblock %}
 
 {% block content %}
-  <h2>Neuer Lernhelfer</h2>
+  <h2>Schüler und Lernhelfer zusammenführen</h2>
 
   <form method="POST">
-    <h3 align="center">Create Match</h3>
+    
+    <label for="tutor_name">Tutor Name</label>
+    <select class="form-control" id="tutor_name" name="tutor_name">
+      {% for tutor in tutors %}
+        <option value="{{ tutor.name }}">
+          {{ tutor.name }} - Höchstmögliche Klasse: {{ tutor.max_grade }} - Subjects: {% for subject in tutor.subjects %}{{ subject }}{% endfor %}
+        </option>
+      {% endfor %}
+    </select>
   
-    <div class="form-group">
-      <label for="tutor_name">Tutor Name</label>
-      <select class="form-control" id="tutor_name" name="tutor_name">
-        {% for tutor in tutors %}
-          <option value="{{ tutor.name }}">{{ tutor.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-  
-    <div class="form-group">
-      <label for="child_name">Child Name</label>
-      <select class="form-control" id="child_name" name="child_name">
-        {% for child in children %}
-          <option value="{{ child.name }}">{{ child.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
+  <label for="child_name">Child Name</label>
+  <select class="form-control" id="child_name" name="child_name">
+    {% for child in children %}
+      <option value="{{ child.name }}">
+        {{ child.name }} - Klasse: {{ child.grade }} - Subjects: {% for subject in child.subjects %}{{ subject }}{% endfor %}
+      </option>
+    {% endfor %}
+  </select>
+      
   
     <div class="form-group">
       <label>Days</label><br>

@@ -1,5 +1,5 @@
 {% block content %}
-  <h1>Matching</h1>
+  <h1>Stundenplan</h1>
   <h2>Kalenderwoche {{ current_week }}</h2>
   <table>
     <thead>
@@ -30,7 +30,6 @@
                     data-start-time="{{ day_matches[index].start_time.strftime('%H:%M') }}"
                     data-end-time="{{ day_matches[index].end_time.strftime('%H:%M') }}"
                     style="background-color: {{ tutor_colors[day_matches[index].tutor_id] }}; border: 2px solid {{ tutor_colors[day_matches[index].tutor_id] }}; padding: 10px;">
-                            <strong>Match ID:</strong> {{ day_matches[index].id }}<br>  <!-- Anzeige der Match ID -->
                     <strong>Tutor:</strong> {{ get_tutor_name_by_id(day_matches[index].tutor_id) }}<br>
                     <strong>Schüler:</strong> {{ get_child_name_by_id(day_matches[index].child_id) }} <br>
                     <strong>Startzeit:</strong> {{ day_matches[index].start_time.strftime('%H:%M') }} <br>

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Lernhelfer{% endblock %}
+{% block title %}Lernhelfer bearbeiten{% endblock %}
 
 {% block content %}
 <form method="POST">
-  <h3 align="center">Edit Lernhelfer</h3>
+  <h3 align="center">Lernhelfer bearbeiten</h3>
   
   <div class="form-group">
     <label for="name">Name</label>
@@ -57,10 +57,17 @@
     <input type="number" class="form-control" id="max_grade" name="max_grade" min="1" max="12" value="{{ tutor.max_grade }}">
   </div>
   
+
   <div class="form-group">
-    <label for="subjects">Fächer</label>
-    <input type="text" class="form-control" id="subjects" name="subjects" value="{{ tutor.subjects }}" placeholder="Enter subjects">
+    <label>Subjects</label><br>
+    {% for subject in ['matha', 'deutsch', 'englisch'] %}
+      <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" id="{{subject}}" name="subjects[]" value="{{subject}}" {% if subject in tutor.subjects.split(',') %} checked {% endif %}>
+        <label class="form-check-label" for="{{subject}}">{{subject.capitalize()}}</label>
+      </div>
+    {% endfor %}
   </div>
+
   
   <div class="form-group">
     <label for="availability_comment">Kommentar zur Verfügbarkeit</label>
@@ -134,6 +141,10 @@
 
   <br />
   <button type="submit" class="btn btn-primary">Submit</button>
+
+  <button type="submit" class="btn btn-danger" formaction="{{ url_for('views.delete_tutor', tutor_id=tutor.id) }}" onclick="return confirm('Möchtest du echt den Tutor entfernen?');">Match löschen</button>
+
+
 </form>
 
 <script>

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Child{% endblock %}
+{% block title %}Schüler bearbeiten{% endblock %}
 
 {% block content %}
 <form method="POST">
-  <h3 align="center">Edit Child</h3>
+  <h3 align="center">Schüler bearbeiten</h3>
 
   
   <div class="form-group">
@@ -60,7 +60,7 @@
 
   <div class="form-group">
     <label>Subjects</label><br>
-    {% for subject in ['math', 'german', 'english'] %}
+    {% for subject in ['matha', 'deutsch', 'englisch'] %}
       <div class="form-check form-check-inline">
         <input type="checkbox" class="form-check-input" id="{{subject}}" name="subjects[]" value="{{subject}}" {% if subject in child.subjects.split(',') %} checked {% endif %}>
         <label class="form-check-label" for="{{subject}}">{{subject.capitalize()}}</label>
@@ -104,6 +104,9 @@
     <input type="text" class="form-control" id="hours" name="hours" value="{{ child.hours }}" placeholder="Wochenstunden angeben">
   </div>
 
+  
+
+
   <div class="form-group">
     <label for="native_language">Muttersprache</label>
     <input type="text" class="form-control" id="native_language" name="native_language" value="{{ child.native_language }}" placeholder="Muttersprache eingeben">
@@ -112,6 +115,10 @@
 
   <br />
   <button type="submit" class="btn btn-primary">Submit</button>
+
+  <button type="submit" class="btn btn-danger" formaction="{{ url_for('views.delete_child', child_id=child.id) }}" onclick="return confirm('Möchtest du echt den Schüler entfernen?');">Match löschen</button>
+
+
 </form>
 
 
