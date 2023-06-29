@@ -6,12 +6,11 @@
 <form method="POST">
   <h3 align="center">Schüler bearbeiten</h3>
 
-  
   <div class="form-group">
     <label for="name">Name</label>
     <input type="text" class="form-control" id="name" name="name" value="{{ child.name }}" placeholder="Enter name">
   </div>
-  
+
   <div class="form-group">
     <label for="grade">Grade</label>
     <input type="text" class="form-control" id="grade" name="grade" value="{{ child.grade }}" placeholder="Enter grade">
@@ -31,7 +30,7 @@
     </div>
     {% endfor %}
   </div>
-  
+
   <div id="availability-fields">
     <!-- Verfügbarkeitsfelder werden dynamisch hinzugefügt -->
     {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
@@ -57,6 +56,7 @@
         </div>
       {% endif %}
     {% endfor %}
+  </div>
 
   <div class="form-group">
     <label>Subjects</label><br>
@@ -68,59 +68,156 @@
     {% endfor %}
   </div>
 
-
   <div class="form-group">
     <label for="start_date">Startdatum</label>
     <input type="date" class="form-control" id="start_date" name="start_date" value="{{ child.start_date }}">
   </div>
-  
+
   <div class="form-group">
     <label for="comment">Kommentar</label>
     <textarea class="form-control" id="comment" name="comment" rows="3">{{ child.comment }}</textarea>
   </div>
-  
+
   <div class="form-group">
-    <label for="street">Straße</label>
-    <input type="text" class="form-control" id="street" name="street" value="{{ child.street }}" placeholder="Straße eingeben">
+    <label for="geb_datum">Geburtsdatum</label>
+    <input type="date" class="form-control" id="geb_datum" name="geb_datum" value="{{ child.geb_datum }}">
   </div>
 
   <div class="form-group">
-    <label for="plz">PLZ</label>
-    <input type="text" class="form-control" id="plz" name="plz" value="{{ child.plz }}" placeholder="PLZ eingeben">
+    <label for="geschlecht">Geschlecht</label>
+    <select class="form-control" id="geschlecht" name="geschlecht">
+      <option value="m" {% if child.geschlecht == 'm' %} selected {% endif %}>Männlich</option>
+      <option value="w" {% if child.geschlecht == 'w' %} selected {% endif %}>Weiblich</option>
+    </select>
   </div>
 
   <div class="form-group">
-    <label for="email">Email</label>
-    <input type="email" class="form-control" id="email" name="email" value="{{ child.email }}" placeholder="Email eingeben">
+    <label for="geb_ort">Geburtsort</label>
+    <input type="text" class="form-control" id="geb_ort" name="geb_ort" value="{{ child.geb_ort }}" placeholder="Enter birthplace">
   </div>
 
   <div class="form-group">
-    <label for="phone">Telefonnummer</label>
-    <input type="tel" class="form-control" id="phone" name="phone" value="{{ child.phone }}" placeholder="Telefonnummer eingeben">
+    <label for="einreise_deutschland">Einreise nach Deutschland</label>
+    <input type="text" class="form-control" id="einreise_deutschland" name="einreise_deutschland" value="{{ child.einreise_deutschland }}" placeholder="Enter date of entry to Germany">
   </div>
 
   <div class="form-group">
-    <label for="hours">Wochenstunden</label>
-    <input type="text" class="form-control" id="hours" name="hours" value="{{ child.hours }}" placeholder="Wochenstunden angeben">
+    <label for="herkunftsland_mutter">Herkunftsland (Mutter)</label>
+    <input type="text" class="form-control" id="herkunftsland_mutter" name="herkunftsland_mutter" value="{{ child.herkunftsland_mutter }}" placeholder="Enter mother's country of origin">
   </div>
-
-  
-
 
   <div class="form-group">
-    <label for="native_language">Muttersprache</label>
-    <input type="text" class="form-control" id="native_language" name="native_language" value="{{ child.native_language }}" placeholder="Muttersprache eingeben">
+    <label for="herkunftsland_vater">Herkunftsland (Vater)</label>
+    <input type="text" class="form-control" id="herkunftsland_vater" name="herkunftsland_vater" value="{{ child.herkunftsland_vater }}" placeholder="Enter father's country of origin">
   </div>
 
+  <div class="form-group">
+    <label for="beruf_mutter">Beruf (Mutter)</label>
+    <input type="text" class="form-control" id="beruf_mutter" name="beruf_mutter" value="{{ child.beruf_mutter }}" placeholder="Enter mother's occupation">
+  </div>
+
+  <div class="form-group">
+    <label for="beruf_vater">Beruf (Vater)</label>
+    <input type="text" class="form-control" id="beruf_vater" name="beruf_vater" value="{{ child.beruf_vater }}" placeholder="Enter father's occupation">
+  </div>
+
+  <div class="form-group">
+    <label for="bemerkungen">Bemerkungen</label>
+    <textarea class="form-control" id="bemerkungen" name="bemerkungen" rows="3">{{ child.bemerkungen }}</textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="lehrer_name">Lehrer Name</label>
+    <input type="text" class="form-control" id="lehrer_name" name="lehrer_name" value="{{ child.lehrer_name }}" placeholder="Enter teacher's name">
+  </div>
+
+  <div class="form-group">
+    <label for="lehrer_telefon">Lehrer Telefonnummer</label>
+    <input type="tel" class="form-control" id="lehrer_telefon" name="lehrer_telefon" value="{{ child.lehrer_telefon }}" placeholder="Enter teacher's phone number">
+  </div>
+
+  <div class="form-group">
+    <label for="lehrer_email">Lehrer Email</label>
+    <input type="email" class="form-control" id="lehrer_email" name="lehrer_email" value="{{ child.lehrer_email }}" placeholder="Enter teacher's email">
+  </div>
+
+  <div class="form-group">
+    <label for="zahlung_jc">Zahlung JC</label>
+    <input type="checkbox" class="form-control" id="zahlung_jc" name="zahlung_jc" {% if child.zahlung_jc %} checked {% endif %}>
+  </div>
+
+  <div class="form-group">
+    <label for="zahlung_wohngeld">Zahlung Wohngeld</label>
+    <input type="checkbox" class="form-control" id="zahlung_wohngeld" name="zahlung_wohngeld" {% if child.zahlung_wohngeld %} checked {% endif %}>
+  </div>
+
+  <div class="form-group">
+    <label for="zahlung_kinderzuschlag">Zahlung Kinderzuschlag</label>
+    <input type="checkbox" class="form-control" id="zahlung_kinderzuschlag" name="zahlung_kinderzuschlag" {% if child.zahlung_kinderzuschlag %} checked {% endif %}>
+  </div>
+
+  <div class="form-group">
+    <label for="zahlung_asylbewerber">Zahlung Asylbewerber</label>
+    <input type="checkbox" class="form-control" id="zahlung_asylbewerber" name="zahlung_asylbewerber" {% if child.zahlung_asylbewerber %} checked {% endif %}>
+  </div>
+
+  <div class="form-group">
+    <label for="zahlung_privat">Zahlung Privat</label>
+    <input type="checkbox" class="form-control" id="zahlung_privat" name="zahlung_privat" {% if child.zahlung_privat %} checked {% endif %}>
+  </div>
+
+  <div class="form-group">
+    <label for="bg_nummer">BG Nummer</label>
+    <input type="text" class="form-control" id="bg_nummer" name="bg_nummer" value="{{ child.bg_nummer }}" placeholder="Enter BG number">
+  </div>
+
+  <div class="form-group">
+    <label for="buT_nummer">BuT Nummer</label>
+    <input type="text" class="form-control" id="buT_nummer" name="buT_nummer" value="{{ child.buT_nummer }}" placeholder="Enter BuT number">
+  </div>
+
+  <div class="form-group">
+    <label for="zeitraum">Zeitraum</label>
+    <input type="text" class="form-control" id="zeitraum" name="zeitraum" value="{{ child.zeitraum }}" placeholder="Enter period">
+  </div>
+
+  <div class="form-group">
+    <label for="foerderart">Förderart</label>
+    <input type="text" class="form-control" id="foerderart" name="foerderart" value="{{ child.foerderart }}" placeholder="Enter type of support">
+  </div>
+
+  <div class="form-group">
+    <label for="bewilligte_stunden">Bewilligte Stunden</label>
+    <input type="text" class="form-control" id="bewilligte_stunden" name="bewilligte_stunden" value="{{ child.bewilligte_stunden }}" placeholder="Enter approved hours">
+  </div>
+
+  <div class="form-group">
+    <label for="lernort">Lernort</label>
+    <select class="form-control" id="lernort" name="lernort">
+      <option value="1" {% if child.lernort == '1' %} selected {% endif %}>Homeschooling</option>
+      <option value="2" {% if child.lernort == '2' %} selected {% endif %}>Schule</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="unavailable_time_slots">Nicht verfügbare Zeitfenster</label>
+    <div id="unavailable_time_slots_container">
+      {% for slot in child.unavailable_time_slots %}
+      <div class="unavailable-time-slot">
+        <input type="date" class="form-control" name="unavailable_start_date[]" value="{{ slot.start_date }}" placeholder="Startdatum">
+        <input type="date" class="form-control" name="unavailable_end_date[]" value="{{ slot.end_date }}" placeholder="Enddatum">
+        <input type="text" class="form-control" name="unavailable_note[]" value="{{ slot.note }}" placeholder="Notiz">
+      </div>
+      {% endfor %}
+    </div>
+    <button type="button" class="btn btn-secondary" id="add_unavailable_time_slot">Weiteres Zeitfenster hinzufügen</button>
+  </div>
 
   <br />
   <button type="submit" class="btn btn-primary">Submit</button>
 
   <button type="submit" class="btn btn-danger" formaction="{{ url_for('views.delete_child', child_id=child.id) }}" onclick="return confirm('Möchtest du echt den Schüler entfernen?');">Match löschen</button>
-
-
 </form>
-
 
 <script>
   const daysCheckboxes = document.querySelectorAll('input[name="days[]"]');
@@ -206,6 +303,3 @@
 </script>
 
 {% endblock %}
-
-
-

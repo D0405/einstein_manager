@@ -8,97 +8,195 @@
   <form method="POST">
     
     <label for="tutor_name">Tutor Name</label>
-    <select class="form-control" id="tutor_name" name="tutor_name">
+    <select class="form-control" id="tutor_name" name="tutor_name" onchange="updatePage()">
+      <option disabled selected value="">Select a tutor</option>
       {% for tutor in tutors %}
-        <option value="{{ tutor.name }}">
-          {{ tutor.name }} - Höchstmögliche Klasse: {{ tutor.max_grade }} - Subjects: {% for subject in tutor.subjects %}{{ subject }}{% endfor %}
+      <option value="{{ tutor.id }}" {% if tutor.id == tutor_id %}selected{% endif %}>
+        {{ tutor.name }} - Höchstmögliche Klasse: {{ tutor.max_grade }} - Subjects: {% for subject in tutor.subjects %}{{ subject }}{% endfor %} 
+          {% if tutor.weekly_hours %}
+            - Wochenstunden: {{ tutor.weekly_hours }}
+          {% endif %}
         </option>
       {% endfor %}
     </select>
-  
-  <label for="child_name">Child Name</label>
-  <select class="form-control" id="child_name" name="child_name">
-    {% for child in children %}
-      <option value="{{ child.name }}">
-        {{ child.name }} - Klasse: {{ child.grade }} - Subjects: {% for subject in child.subjects %}{{ subject }}{% endfor %}
-      </option>
-    {% endfor %}
-  </select>
-      
-  
+    
+    <label for="child_name">Child Name</label>
+    <select class="form-control" id="child_name" name="child_name" onchange="updatePage()">
+      <option disabled selected value="">Select a child</option>
+      {% for child in children %}
+      <option value="{{ child.id }}" {% if child.id == child_id %}selected{% endif %}>
+        {{ child.name }} - Klasse: {{ child.grade }} - Subjects: {% for subject in child.subjects.split(",") %}{{ subject }}{% if not loop.last %}, {% endif %}{% endfor %}
+        </option>
+      {% endfor %}
+    </select>
+    
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="show_only_students_without_tutor" name="show_only_students_without_tutor" {% if show_only_students_without_tutor  %}checked{% endif %} onclick="updatePage()">
+      <label class="form-check-label" for="show_only_students_without_tutor">Nur Schüler ohne Tutor anzeigen</label>
+    </div>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="show_only_tutors_without_schedule" name="show_only_tutors_without_schedule" {% if show_only_tutors_without_schedule %}checked{% endif %} onclick="updatePage()">
+      <label class="form-check-label" for="show_only_tutors_without_schedule">Nur Tutoren ohne Termin anzeigen</label>
+    </div>
     <div class="form-group">
       <label>Days</label><br>
-      {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] %}
-      <div class="form-check form-check-inline">
-        <input type="checkbox" class="form-check-input" id="{{day}}" name="days[]" value="{{day}}">
-        <label class="form-check-label" for="{{day}}">{{day.capitalize()}}</label>
-      </div>
-      {% endfor %}
+      {% if possibleTimes is not none and possibleTimes|length > 0 %}
+        {% for day, childSlots, tutorSlots in possibleTimes %}
+        <div class="form-check form-check-inline">
+          <input type="checkbox" class="form-check-input" id="{{day}}" name="days[]" value="{{day}}">
+          <label class="form-check-label" for="{{day}}">{{day.capitalize()}}</label>
+          {% if childSlots or tutorSlots %}
+          <div class="time-slots">
+            <p>Verfügbare Zeiten:</p>
+            <ul>
+              {% for slot in tutorSlots %}
+              <li>
+                <input type="time" name="{{day}}_start_time" value="{{ slot[0].strftime('%H:%M') }}">
+                -
+                <input type="time" name="{{day}}_end_time" value="{{ slot[1].strftime('%H:%M') }}"> (Kind)
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% else %}
+          <p>Keine verfügbaren Zeiten.</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <p>Keine verfügbaren Zeiten gefunden.</p>
+      {% endif %}
     </div>
-  
+
+
+
     <div id="availability-fields">
       <!-- Verfügbarkeitsfelder werden dynamisch hinzugefügt -->
     </div>
-  
+
     <button type="submit" class="btn btn-primary">Create Match</button>
   </form>
   
   <script>
-    const daysCheckboxes = document.querySelectorAll('input[name="days[]"]');
-    const availabilityFieldsContainer = document.getElementById('availability-fields');
-  
-    // Event Listener für Checkboxen hinzufügen
-    daysCheckboxes.forEach(function(checkbox) {
-      checkbox.addEventListener('change', function() {
-        const day = checkbox.value;
-        const availabilityFields = document.getElementById(`${day}_availability_fields`);
-  
-        if (checkbox.checked) {
-          // Wenn Checkbox ausgewählt ist, füge die Felder hinzu
-          if (!availabilityFields) {
-            const newAvailabilityFields = createAvailabilityFields(day);
-            availabilityFieldsContainer.appendChild(newAvailabilityFields);
-          }
-        } else {
-          // Wenn Checkbox abgewählt ist, entferne die Felder
-          if (availabilityFields) {
-            availabilityFields.remove();
-          }
-        }
-      });
-    });
-  
-    function createAvailabilityFields(day) {
+    function createAvailabilityFields(day, childSlots, tutorSlots) {
       const availabilityFields = document.createElement('div');
       availabilityFields.classList.add('form-group');
       availabilityFields.id = `${day}_availability_fields`;
-  
+
       const startTimeLabel = document.createElement('label');
       startTimeLabel.textContent = `Startzeit (${day})`;
-  
+
       const startTimeInput = document.createElement('input');
       startTimeInput.type = 'time';
       startTimeInput.id = `${day}_start_time`;
       startTimeInput.name = `${day}_start_time`;
       startTimeInput.min = '14:00';
       startTimeInput.max = '19:00';
-  
+
       const endTimeLabel = document.createElement('label');
       endTimeLabel.textContent = `Endzeit (${day})`;
-  
+
       const endTimeInput = document.createElement('input');
       endTimeInput.type = 'time';
       endTimeInput.id = `${day}_end_time`;
       endTimeInput.name = `${day}_end_time`;
       endTimeInput.min = '14:00';
       endTimeInput.max = '19:00';
-  
+
+      // Set the default values based on the available slots
+      if (childSlots.length > 0) {
+        startTimeInput.value = childSlots[0][0].toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+        endTimeInput.value = childSlots[0][1].toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+      }
+
       availabilityFields.appendChild(startTimeLabel);
       availabilityFields.appendChild(startTimeInput);
       availabilityFields.appendChild(endTimeLabel);
       availabilityFields.appendChild(endTimeInput);
-  
+
       return availabilityFields;
+    }
+
+    const daysCheckboxes = document.querySelectorAll('input[name="days[]"]');
+    const availabilityFieldsContainer = document.getElementById('availability-fields');
+
+    // Event Listener für Checkboxen hinzufügen
+    
+
+
+  // Funktion aufrufen, wenn sich die ausgewählten Tag-Checkboxes ändern
+  const dayCheckboxes = document.querySelectorAll('input[name="days[]"]');
+  dayCheckboxes.forEach(dayCheckbox => {
+    dayCheckbox.addEventListener('change', displayAvailableSlots);
+  });
+    tutorNameSelect.addEventListener('change', function() {
+      // Clear the child options
+      childNameSelect.options.length = 0;
+    
+      // Assuming you have a function getAvailability that returns a list of child ids who are available at the same time as the selected tutor.
+      const availableChildren = getAvailability(tutorNameSelect.value);
+    
+      // Update child dropdown based on available children
+      for(let child of childrenWithoutTutor) {
+        if (availableChildren.includes(child.id)) {
+          const option = new Option(child.name, child.id);
+          childNameSelect.options.add(option);
+        }
+      }
+    });
+
+    childNameSelect.addEventListener('change', function() {
+      // Clear the tutor options
+      tutorNameSelect.options.length = 0;
+
+      // Assuming you have a function getAvailability that returns a list of tutor ids who are available at the same time as the selected child.
+      const availableTutors = get_tutors(childNameSelect.value);
+    
+      // Update tutor dropdown based on available tutors
+      for(let tutor of tutorWithoutChild) {
+        if (availableTutors.includes(tutor.id)) {
+          const option = new Option(tutor.name, tutor.id);
+          tutorNameSelect.options.add(option);
+        }
+      }
+    });
+
+    const showOnlyStudentsCheckbox = document.getElementById('show_only_students_without_tutor');
+    const showOnlyTutorsCheckbox = document.getElementById('show_only_tutors_without_schedule');
+    const childNameSelect = document.getElementById('child_name');
+    const tutorNameSelect = document.getElementById('tutor_name');
+    var childrenWithoutTutor = JSON.parse('{{ children|tojson|safe }}');
+    var tutorWithoutChild = JSON.parse('{{ tutors|tojson|safe }}');
+
+    // Update page based on checkbox status
+    function updatePage() {
+      const studentCheckBox = document.getElementById("show_only_students_without_tutor");
+      const tutorCheckBox = document.getElementById("show_only_tutors_without_schedule");
+      const childNameSelect = document.getElementById('child_name');
+      const tutorNameSelect = document.getElementById('tutor_name');
+
+      const urlParams = new URLSearchParams(window.location.search);
+
+      if (studentCheckBox.checked) {
+        urlParams.set('show_only_students_without_tutor', 'true');
+      } else {
+        urlParams.delete('show_only_students_without_tutor');
+      }
+
+      if (tutorCheckBox.checked) {
+        urlParams.set('show_only_tutors_without_schedule', 'true');
+      } else {
+        urlParams.delete('show_only_tutors_without_schedule');
+      }
+
+      // Save the selected tutor id and child id
+      urlParams.set('tutor_id', tutorNameSelect.value);
+      urlParams.set('child_id', childNameSelect.value);
+
+      window.location.search = urlParams.toString();
+
+
     }
   </script>
 {% endblock %}

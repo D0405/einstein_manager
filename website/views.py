@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, jsonify
 from . import db
 import json
-from .models import Tutor, Availability, Child, ChildAvailability, Note, Match, MatchDay
+from .models import Tutor, Availability, Child, ChildAvailability, Note, Match, MatchDay, ChildUnavailableTimeSlot
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from datetime import datetime
 from flask_login import login_required, current_user
@@ -38,8 +38,8 @@ def add_tutor():
         start_date_str = request.form.get('start_date')
         birthdate = datetime.strptime(birthdate_str, '%Y-%m-%d').date()
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-        max_grade = request.form.get('max_grade')
-        subjects = request.form.get('subjects')
+        max_grade = int(request.form.get('max_grade'))
+        subjects = request.form.getlist('subjects[]')
         comment = request.form.get('comment')
         street = request.form.get('street')
         plz = request.form.get('plz')
@@ -52,7 +52,8 @@ def add_tutor():
         qualification = request.form.get('qualification')
         previous_training = request.form.get('previous_training')
         wage = request.form.get('wage')
-        hours = request.form.get('hours')
+        hours = int(request.form.get('hours'))
+        geschlecht = request.form.get('geschlecht')
 
         availabilities = []
 
@@ -103,6 +104,8 @@ def add_tutor():
 
     return render_template("create_lernhelfer.html", user=current_user, tutor=None)
 
+from datetime import date
+from random import randint
 
 @views.route('/create-child', methods=['GET', 'POST'])
 def add_child():
@@ -113,13 +116,10 @@ def add_child():
         grade = request.form.get('grade')
         school = request.form.get('school')
         days = request.form.getlist('days[]')
+
         start_date_str = request.form.get('start_date')
         year, month, day = map(int, start_date_str.split('-'))
-
-        # Create the start_date object using the extracted values
         start_date = date(year, month, day)
-
-
 
         comment = request.form.get('comment')
         street = request.form.get('street')
@@ -127,9 +127,8 @@ def add_child():
         email = request.form.get('email')
         phone = request.form.get('phone')
         hours = request.form.get('hours')
-
         native_language = request.form.get('native_language')
-        
+
         availabilities = []
 
         for day in days:
@@ -141,6 +140,52 @@ def add_child():
 
             availability = ChildAvailability(day=day, start_time=start_time, end_time=end_time)
             availabilities.append(availability)
+
+        geb_datum_str = request.form.get('geb_datum')
+        year, month, day = map(int, geb_datum_str.split('-'))
+        geb_datum = date(year, month, day)
+
+        id = randint(0, 999999999)
+        geschlecht = request.form.get('geschlecht')
+        geb_ort = request.form.get('geb_ort')
+        einreise_deutschland = request.form.get('einreise_deutschland')
+        herkunftsland_mutter = request.form.get('herkunftsland_mutter')
+        herkunftsland_vater = request.form.get('herkunftsland_vater')
+        beruf_mutter = request.form.get('beruf_mutter')
+        beruf_vater = request.form.get('beruf_vater')
+        bemerkungen = request.form.get('bemerkungen')
+        lehrer_name = request.form.get('lehrer_name')
+        lehrer_telefon = request.form.get('lehrer_telefon')
+        lehrer_email = request.form.get('lehrer_email')
+        zahlung_jc = bool(request.form.get('zahlung_jc'))
+        zahlung_wohngeld = bool(request.form.get('zahlung_wohngeld'))
+        zahlung_kinderzuschlag = bool(request.form.get('zahlung_kinderzuschlag'))
+        zahlung_asylbewerber = bool(request.form.get('zahlung_asylbewerber'))
+        zahlung_privat = bool(request.form.get('zahlung_privat'))
+        bg_nummer = request.form.get('bg_nummer')
+        buT_nummer = request.form.get('buT_nummer')
+        zeitraum = request.form.get('zeitraum')
+        foerderart = request.form.get('foerderart')
+        bewilligte_stunden = request.form.get('bewilligte_stunden')
+        lernort = request.form.get('lernort')
+
+        unavailable_start_dates = request.form.getlist('unavailable_start_date[]')
+        unavailable_end_dates = request.form.getlist('unavailable_end_date[]')
+        unavailable_notes = request.form.getlist('unavailable_note[]')
+
+        unavailable_time_slots = []
+
+        for start_date, end_date, note in zip(unavailable_start_dates, unavailable_end_dates, unavailable_notes):
+            if start_date and end_date and note:
+                start_date_str = request.form.get('start_date')
+                year, month, day = map(int, start_date_str.split('-'))
+                start_date = date(year, month, day)
+
+                year, month, day = map(int, end_date.split('-'))
+                end_date_obj = date(year, month, day)
+
+                unavailable_time_slot = ChildUnavailableTimeSlot(start_date=start_date, end_date=end_date_obj, note=note)
+                unavailable_time_slots.append(unavailable_time_slot)
 
         if len(name) < 2:
             flash('Name must be greater than 1 character.', category='error')
@@ -157,21 +202,61 @@ def add_child():
         elif not availabilities:
             flash('Please provide the start and end times for the selected days.', category='error')
         else:
-            new_child = Child(name=name, parent_phone=parent_phone, subjects=','.join(subjects), grade=grade, school=school, days=availabilities,
-                              start_date=start_date, comment=comment, street=street, plz=plz, email=email, phone=phone, native_language=native_language, hours=hours)
+            new_child = Child(
+                name=name,
+                id=id,
+                parent_phone=parent_phone,
+                subjects=','.join(subjects),
+                grade=grade,
+                school=school,
+                days=availabilities,
+                start_date=start_date,
+                comment=comment,
+                street=street,
+                plz=plz,
+                email=email,
+                phone=phone,
+                hours=hours,
+                native_language=native_language,
+                geb_datum=geb_datum,
+                geschlecht=geschlecht,
+                geb_ort=geb_ort,
+                einreise_deutschland=einreise_deutschland,
+                herkunftsland_mutter=herkunftsland_mutter,
+                herkunftsland_vater=herkunftsland_vater,
+                beruf_mutter=beruf_mutter,
+                beruf_vater=beruf_vater,
+                bemerkungen=bemerkungen,
+                lehrer_name=lehrer_name,
+                lehrer_telefon=lehrer_telefon,
+                lehrer_email=lehrer_email,
+                zahlung_jc=zahlung_jc,
+                zahlung_wohngeld=zahlung_wohngeld,
+                zahlung_kinderzuschlag=zahlung_kinderzuschlag,
+                zahlung_asylbewerber=zahlung_asylbewerber,
+                zahlung_privat=zahlung_privat,
+                bg_nummer=bg_nummer,
+                buT_nummer=buT_nummer,
+                zeitraum=zeitraum,
+                foerderart=foerderart,
+                bewilligte_stunden=bewilligte_stunden,
+                lernort=lernort,
+                unavailable_time_slots=unavailable_time_slots
+            )
+
             db.session.add(new_child)
             db.session.commit()
-            
+
             flash('Child created!', category='success')
             return redirect(url_for('views.home'))
 
     return render_template("create_child.html", user=current_user)
 
-
 def addFakes():
     from faker import Faker
     from datetime import datetime, timedelta, time, date
     import random
+
 
     fake = Faker('de_DE')  # German locale
 
@@ -196,14 +281,14 @@ def addFakes():
 
         num_subjects = random.randint(1, 3)
 
-
         tutor = Tutor(
             name=fake.name(),
             birthdate=fake.date_of_birth(minimum_age=18, maximum_age=65),
             start_date=fake.date_between(start_date='-2y', end_date='today'),
             max_grade=random.randint(1, 13),
-            hours = random.choice([2, 4, 6]),
-            subjects= ','.join(random.sample(subjects, num_subjects)),
+            hours=random.choice([2, 4, 6]),
+            subjects=','.join(random.sample(subjects, num_subjects)),
+            availability=[],
             comment=fake.text(),
             street=fake.street_name(),
             plz=fake.postcode(),
@@ -216,23 +301,21 @@ def addFakes():
             qualification=fake.job(),
             previous_training=fake.job(),
             wage=str(random.randint(10, 50)),
+            gender=fake.random_element(['m', 'f']),
         )
-        selected_days = random.sample(days, 4)  # Select two random days
-        availabilities = []
+        selected_days = random.sample(days, 4)  # Select four random days
         for day in selected_days:
             valid_range = False
             while not valid_range:
-                tutor_start_hour = 16 #tutor_start_hour #random.randint(tutor_start_hour, tutor_end_hour-1) #TODO flexible
-                tutor_end_hour = 18 #tutor_end_hour #random.randint(tutor_start_hour +1, tutor_end_hour)
+                tutor_start_hour = 16#  random.randint(start_hour, end_hour - 1)
+                tutor_end_hour =  18 #random.randint(tutor_start_hour + 1, end_hour)
 
                 tutor_start_minute = 30 #random.choice([0, 30])
 
-                if (tutor_end_hour - tutor_start_hour)==1:
-                    tutor_end_minute = tutor_start_minute
-
+                if (tutor_end_hour - tutor_start_hour) == 1:
+                    tutor_end_minute = 30 #tutor_start_minute
                 else:
-                    tutor_end_minute = 30 #random.choice([0, 30]) 
-
+                    tutor_end_minute = 30 #random.choice([0, 30])
 
                 if tutor_start_hour < tutor_end_hour:
                     valid_range = True
@@ -240,13 +323,11 @@ def addFakes():
             start_time = time(tutor_start_hour, tutor_start_minute)
             end_time = time(tutor_end_hour, tutor_end_minute)
             availability = Availability(
-                tutor_id=tutor.id,
                 day=day,
                 start_time=start_time,
                 end_time=end_time,
             )
-            availabilities.append(availability)
-        tutor.availability = availabilities
+            tutor.availability.append(availability)
         db.session.add(tutor)
 
     # Create 50 children
@@ -260,9 +341,9 @@ def addFakes():
         child = Child(
             name=fake.first_name() + " " + fake.last_name(),
             parent_phone=fake.phone_number(),
-            subjects= ','.join(random.sample(subjects, num_subjects)),
+            subjects=','.join(random.sample(subjects, num_subjects)),
             grade=str(random.randint(1, 13)),
-            hours= 2, #str(random.randint(2, 4)),
+            hours=str(random.randint(2, 4)),
             school=fake.company(),
             start_date=fake.date_between(start_date='-2y', end_date='today'),
             comment=fake.text(),
@@ -271,21 +352,43 @@ def addFakes():
             email=fake.email(),
             phone=fake.phone_number(),
             native_language=fake.language_name(),
+            geb_datum=fake.date_of_birth(minimum_age=6, maximum_age=18),
+            geschlecht=fake.random_element(['m', 'f']),
+            geb_ort=fake.city(),
+            einreise_deutschland=fake.country(),
+            herkunftsland_mutter=fake.country(),
+            herkunftsland_vater=fake.country(),
+            beruf_mutter=fake.job(),
+            beruf_vater=fake.job(),
+            bemerkungen=fake.text(),
+            lehrer_name=fake.name(),
+            lehrer_telefon=fake.phone_number(),
+            lehrer_email=fake.email(),
+            zahlung_jc=fake.boolean(),
+            zahlung_wohngeld=fake.boolean(),
+            zahlung_kinderzuschlag=fake.boolean(),
+            zahlung_asylbewerber=fake.boolean(),
+            zahlung_privat=fake.boolean(),
+            bg_nummer=fake.random_number(digits=10),
+            buT_nummer=fake.random_number(digits=10),
+            zeitraum=fake.month(),
+            foerderart=fake.random_element(['A', 'B', 'C']),
+            bewilligte_stunden=str(random.randint(2, 4)),
+            lernort=fake.random_element(['H', 'S']),
+            unavailable_time_slots=[],
         )
-        selected_days = random.sample(days, 3)  # Select two random days
-        availabilities = []
+        selected_days = random.sample(days, 3)  # Select three random days
         for day in selected_days:
             valid_range = False
             while not valid_range:
-                child_start_hour = 16 #random.randint(child_start_hour, child_end_hour-1)
-                child_end_hour = 18 #random.randint(child_start_hour+1, child_end_hour)
+                child_start_hour = 16 #random.randint(start_hour, end_hour - 1)
+                child_end_hour = 18 #random.randint(child_start_hour + 1, end_hour)
 
-                child_start_minute = 30 # random.choice([0, 30])
-                if (child_end_hour - child_start_hour)==1:
+                child_start_minute = 30 #random.choice([0, 30])
+                if (child_end_hour - child_start_hour) == 1:
                     child_end_minute = child_start_minute
-                
-                else:                    
-                    child_end_minute = 30 #random.choice([0, 30])
+                else:
+                    child_end_minute = 30 # random.choice([0, 30])
 
                 if child_start_hour < child_end_hour:
                     valid_range = True
@@ -293,16 +396,15 @@ def addFakes():
             start_time = time(child_start_hour, child_start_minute)
             end_time = time(child_end_hour, child_end_minute)
             availability = ChildAvailability(
-                child_id=child.id,
                 day=day,
                 start_time=start_time,
                 end_time=end_time,
             )
-            availabilities.append(availability)
-        child.days = availabilities
+            child.days.append(availability)
         db.session.add(child)
 
     db.session.commit()
+
 
 def get_tutor_name_by_id(tutor_id):
     tutor = Tutor.query.get(tutor_id)
@@ -401,9 +503,148 @@ def rgb_to_hex(rgb):
 #TODO  PAsse den Algorithmus an: Es soll zunähst eine Liste mit 2er Paaren von Schülern erstellt werden, die an den gleichen Tagen können. Anschließend soll für jedes Paar ein Lernhelfer gefunden werden, der die beiden betreuen kann. Beide schüler kriegen dann jeweils einen 1h Termin an dem Tag:
 import uuid
 
-#@views.route('/match-tutor-child')
+# #@views.route('/match-tutor-child')
+# @views.route('/match-random')
+# def match_tutor_child():
+
+#     MatchDay.query.delete()
+#     Match.query.delete()
+#     db.session.commit()
+
+#     all_children = db.session.query(Child).all()
+#     all_tutors = db.session.query(Tutor).all()
+
+#     tutor_day_counts = defaultdict(lambda: defaultdict(int))
+#     child_day_counts = defaultdict(lambda: defaultdict(int))
+#     tutor_time_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+#     tutor_total_hours = defaultdict(int)  # Add a count for total tutor hours
+#     child_total_hours = defaultdict(int)  # Add a count for total child hours
+#     matchId = 0
+
+#     single_slot_tutors = set()
+
+#     for child in all_children:
+#         # Sortiere Tutoren nach Anzahl der Tage, an denen sie bisher Termine haben
+#         all_tutors = sorted(all_tutors, key=lambda x: (x.id in single_slot_tutors, len(set(tutor_day_counts[x.id].values()))))
+
+#         for tutor in all_tutors:
+#             if tutor.max_grade < int(child.grade) or tutor_total_hours[tutor.id] >= int(tutor.hours) or child_total_hours[child.id] >= int(child.hours):
+#                 continue
+
+#             child_availability = db.session.query(ChildAvailability).filter(ChildAvailability.child_id == child.id).all()
+#             tutor_availability = db.session.query(Availability).filter(Availability.tutor_id == tutor.id).all()
+
+#             matched_availability = []
+                
+                
+                
+#             for t_availability in tutor_availability:
+#                 for c_availability in child_availability:
+#                     if c_availability.day == t_availability.day and \
+#                         c_availability.start_time <= t_availability.start_time and \
+#                         c_availability.end_time >= t_availability.end_time:
+
+#                         current_start_time = max(c_availability.start_time, t_availability.start_time)
+#                         while current_start_time < t_availability.end_time and child_total_hours[child.id] < int(child.hours):
+#                             if tutor_day_counts[tutor.id][c_availability.day] < 2 and \
+#                                 child_day_counts[child.id][c_availability.day] < 1 and \
+#                                 tutor_time_counts[tutor.id][c_availability.day][current_start_time] < 1:
+
+#                                 end_time = (datetime.combine(date.today(), current_start_time) + timedelta(hours=1)).time()  
+
+#                                 matched_availability.append({
+#                                     'day': c_availability.day,
+#                                     'start_time': current_start_time,
+#                                     'end_time': end_time
+#                                 })
+
+#                                 tutor_time_counts[tutor.id][c_availability.day][current_start_time] += 1
+#                                 tutor_day_counts[tutor.id][c_availability.day] += 1
+#                                 child_day_counts[child.id][c_availability.day] += 1
+#                                 tutor_total_hours[tutor.id] += 1  # Increase the total tutor hours
+#                                 child_total_hours[child.id] += 1  # Increase the total child hours
+
+#                                 if len(matched_availability) >= int(child.hours):
+#                                     break
+
+#                             current_start_time = (datetime.combine(date.today(), current_start_time) + timedelta(hours=1)).time()
+
+#                     if len(matched_availability) >= int(child.hours):
+#                         break
+
+#             if len(matched_availability) >= int(child.hours):
+#                 match = Match(id = matchId ,tutor_id=tutor.id, tutor_name = tutor.name, child_name=child.name, child_id=child.id)
+#                 db.session.add(match)
+#                 db.session.commit()
+
+#                 for availability in matched_availability:
+#                     match_day = MatchDay(
+#                         match_id=matchId, 
+#                         day=availability['day'], 
+#                         start_time=availability['start_time'], 
+#                         end_time=availability['end_time']
+#                     )
+#                     db.session.add(match_day)
+#                     db.session.commit()
+
+#                 # If tutor has only one slot, add to the single_slot_tutors set
+#                 if tutor_day_counts[tutor.id] == 1:
+#                     single_slot_tutors.add(tutor.id)
+#                 else:
+#                     single_slot_tutors.discard(tutor.id)
+
+#                 matchId = matchId + 1
+
+
+#     matches_list = []
+#     matches = db.session.query(Match).all()
+#     for match in matches:
+#         match_days = db.session.query(MatchDay).filter(MatchDay.match_id == match.id).all()
+#         for match_day in match_days:
+#             matches_list.append({
+#                 'id': match.id,
+#                 'tutor_id': match.tutor_id,
+#                 'child_id': match.child_id,
+#                 'day': match_day.day,
+#                 'start_time': match_day.start_time,
+#                 'end_time': match_day.end_time
+#             })
+
+#     tutor_colors = dict(zip([tutor.id for tutor in all_tutors], map(rgb_to_hex, get_n_hues(len(all_tutors)))))
+
+#     current_week = date.today().isocalendar()[1]
+
+#     print_matches()
+#     return redirect(url_for('views.show_matches'))
+#    # return render_template("match_tutor_child.html", matches=matches_list, user=current_user, get_tutor_name_by_id=get_tutor_name_by_id, get_child_name_by_id=get_child_name_by_id, tutor_colors=tutor_colors, current_week=current_week)
+
+def time_overlaps(time1_start, time1_end, time2_start, time2_end):
+    # Check if two time periods overlap
+    return time1_start <= time2_end and time2_start <= time1_end
+
+
+# Convert availability of children and tutors to dictionary
+def get_availability_as_dict(availabilities):
+    availability_dict = {}
+    for availability in availabilities:
+        if availability.day not in availability_dict:
+            availability_dict[availability.day] = []
+        availability_dict[availability.day].append(availability)
+    return availability_dict
+
+
+def count_appointments(day):
+    return MatchDay.query.filter_by(day=day).count()
+
+from itertools import combinations
+from datetime import datetime, date, timedelta
+
 @views.route('/match-random')
-def match_tutor_child():
+def match_tutor_child(class_relevance = False):
+
+    class_relevance = True
+
+
 
     MatchDay.query.delete()
     Match.query.delete()
@@ -412,109 +653,137 @@ def match_tutor_child():
     all_children = db.session.query(Child).all()
     all_tutors = db.session.query(Tutor).all()
 
-    tutor_day_counts = defaultdict(lambda: defaultdict(int))
-    child_day_counts = defaultdict(lambda: defaultdict(int))
-    tutor_time_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-    tutor_total_hours = defaultdict(int)  # Add a count for total tutor hours
-    child_total_hours = defaultdict(int)  # Add a count for total child hours
+    child_combinations = combinations(all_children, 2)
+
+    matched_children = set()
+    matched_tutors = set()
     matchId = 0
 
-    single_slot_tutors = set()
+    # Find pairs of children
+    for combo in child_combinations:
+        # Extract child1 and child2 from each combination
+        child1, child2 = combo
 
-    for child in all_children:
-        # Sortiere Tutoren nach Anzahl der Tage, an denen sie bisher Termine haben
-        all_tutors = sorted(all_tutors, key=lambda x: (x.id in single_slot_tutors, len(set(tutor_day_counts[x.id].values()))))
+        if child1.id in matched_children or child2.id in matched_children:
+            continue
 
+        child1_availability_dict = get_availability_as_dict(child1.days)
+        child2_availability_dict = get_availability_as_dict(child2.days)
+
+        # Get the availability days for each child
+        child1_days = set(child1_availability_dict.keys())
+        child2_days = set(child2_availability_dict.keys())
+
+
+
+        # Check if there are at least two days where both children are available
+        common_days = child1_days & child2_days
+
+
+        if len(common_days) < 2:
+            continue
+
+        combo_has_tutor = False
         for tutor in all_tutors:
-            if tutor.max_grade < int(child.grade) or tutor_total_hours[tutor.id] >= int(tutor.hours) or child_total_hours[child.id] >= int(child.hours):
+            if tutor.id in matched_tutors:
                 continue
 
-            child_availability = db.session.query(ChildAvailability).filter(ChildAvailability.child_id == child.id).all()
-            tutor_availability = db.session.query(Availability).filter(Availability.tutor_id == tutor.id).all()
+            if class_relevance:
+                # Check if the tutor can teach the grade level of the children
+                if tutor.max_grade < int(child1.grade) or tutor.max_grade < int(child2.grade):
+                    continue
+                # Check if the children are in the same grade
+                if abs(int(child1.grade) - int(child2.grade)) > 2:
+                    continue
 
-            matched_availability = []
+            if combo_has_tutor: # If the tutor is already matched to this pair of children
+                continue
+
+
+            tutor_availability_dict = get_availability_as_dict(tutor.availability)
+
+            tutor_availability = set(tutor_availability_dict.keys())
+
+            # Use this function to convert the children and tutor availability to dictionary
+
+            tutor_availability_dict = get_availability_as_dict(tutor.availability)
+
+            # check if the tutor is available on the common days
+            if not all(day in tutor_availability for day in common_days):
+                continue
+
+            # Check if the tutor's available time overlaps with the children's available time on the common days
+            if not all(any(time_overlaps(c1_av.start_time, c1_av.end_time, tutor_availability_dict[day][i].start_time, tutor_availability_dict[day][i].end_time) and
+                        time_overlaps(c2_av.start_time, c2_av.end_time, tutor_availability_dict[day][i].start_time, tutor_availability_dict[day][i].end_time)
+                        for i in range(len(tutor_availability_dict[day])) for c1_av in child1_availability_dict[day] for c2_av in child2_availability_dict[day])
+                        for day in common_days):
+                            continue
+
+            match1 = Match(id=matchId, tutor_name = tutor.name, tutor_id=tutor.id, child_name = child1.name, child_id=child1.id)
+            matchId = matchId + 1
+            match2 = Match(id=matchId, tutor_name = tutor.name, tutor_id=tutor.id, child_name = child2.name, child_id=child2.id)
+            matchId = matchId + 1
+            db.session.add(match1)
+            db.session.add(match2)
+
+            # If so, match these children together and assign the tutor
+            matched_children.add(child1.id)
+            matched_children.add(child2.id)
+            matched_tutors.add(tutor.id)
+
+            common_days = sorted(common_days, key=count_appointments)
+
+
+
+            # Loop over common days and create match days
+            appointments_made = 0
+            for day in common_days:
+                # If we've already made 2 appointments, we can stop
+                if appointments_made >= 2:
+                    break                # Filter the availability for this specific day
+                tutor_availability_day = [av for av in tutor.availability if av.day == day]
+                child1_availability_day = [av for av in child1.days if av.day == day]
+                child2_availability_day = [av for av in child2.days if av.day == day]
+
+                one_hour = timedelta(hours=1)
                 
-                
-                
-            for t_availability in tutor_availability:
-                for c_availability in child_availability:
-                    if c_availability.day == t_availability.day and \
-                        c_availability.start_time <= t_availability.start_time and \
-                        c_availability.end_time >= t_availability.end_time:
+                for tutor_av in tutor_availability_day:
+                    for child1_av in child1_availability_day:
+                        for child2_av in child2_availability_day:
+                            if time_overlaps(child1_av.start_time, child1_av.end_time, tutor_av.start_time, tutor_av.end_time) and \
+                                time_overlaps(child2_av.start_time, child2_av.end_time, tutor_av.start_time, tutor_av.end_time):
+                                    # Subtract 1 hour from the end time
+                                    end_time = (datetime.combine(date(1,1,1), tutor_av.end_time) - one_hour).time()
 
-                        current_start_time = max(c_availability.start_time, t_availability.start_time)
-                        while current_start_time < t_availability.end_time and child_total_hours[child.id] < int(child.hours):
-                            if tutor_day_counts[tutor.id][c_availability.day] < 2 and \
-                                child_day_counts[child.id][c_availability.day] < 1 and \
-                                tutor_time_counts[tutor.id][c_availability.day][current_start_time] < 1:
+                                    match_day1 = MatchDay(match_id=match1.id, day=day, start_time=tutor_av.start_time, end_time=end_time)
+                                    db.session.add(match_day1)
 
-                                end_time = (datetime.combine(date.today(), current_start_time) + timedelta(hours=1)).time()  
-
-                                matched_availability.append({
-                                    'day': c_availability.day,
-                                    'start_time': current_start_time,
-                                    'end_time': end_time
-                                })
-
-                                tutor_time_counts[tutor.id][c_availability.day][current_start_time] += 1
-                                tutor_day_counts[tutor.id][c_availability.day] += 1
-                                child_day_counts[child.id][c_availability.day] += 1
-                                tutor_total_hours[tutor.id] += 1  # Increase the total tutor hours
-                                child_total_hours[child.id] += 1  # Increase the total child hours
-
-                                if len(matched_availability) >= int(child.hours):
+                                    start_time = (datetime.combine(date(1,1,1), tutor_av.start_time) + one_hour).time()
+                                    match_day2 = MatchDay(match_id=match2.id, day=day, start_time=start_time, end_time=tutor_av.end_time)
+                                    db.session.add(match_day2)
+                                    print(f"{tutor.name} is tutoring {child1.name} from {match_day1.start_time} to {match_day1.end_time} and {child2.name} from {match_day2.start_time} to {match_day2.end_time} on {day} from {tutor_av.start_time} to {tutor_av.end_time}")
+                                    combo_has_tutor = True
+                                    appointments_made += 1
                                     break
+    # db.session.commit()
 
-                            current_start_time = (datetime.combine(date.today(), current_start_time) + timedelta(hours=1)).time()
+    unmatched_children = [child for child in all_children if child.id not in matched_children]
+    for child in unmatched_children:
+        print(f"{child.name} has not been matched.")
 
-                    if len(matched_availability) >= int(child.hours):
-                        break
+    unmatched_tutors = [tutor for tutor in all_tutors if tutor.id not in matched_tutors]
+    for tutor in unmatched_tutors:
+        print(f"{tutor.name} has not been assigned a pair.")
+    #################
 
-            if len(matched_availability) >= int(child.hours):
-                match = Match(id = matchId ,tutor_id=tutor.id, tutor_name = tutor.name, child_name=child.name, child_id=child.id)
-                db.session.add(match)
-                db.session.commit()
-
-                for availability in matched_availability:
-                    match_day = MatchDay(
-                        match_id=matchId, 
-                        day=availability['day'], 
-                        start_time=availability['start_time'], 
-                        end_time=availability['end_time']
-                    )
-                    db.session.add(match_day)
-                    db.session.commit()
-
-                # If tutor has only one slot, add to the single_slot_tutors set
-                if tutor_day_counts[tutor.id] == 1:
-                    single_slot_tutors.add(tutor.id)
-                else:
-                    single_slot_tutors.discard(tutor.id)
-
-                matchId = matchId + 1
+    db.session.commit()
 
 
-    matches_list = []
-    matches = db.session.query(Match).all()
-    for match in matches:
-        match_days = db.session.query(MatchDay).filter(MatchDay.match_id == match.id).all()
-        for match_day in match_days:
-            matches_list.append({
-                'id': match.id,
-                'tutor_id': match.tutor_id,
-                'child_id': match.child_id,
-                'day': match_day.day,
-                'start_time': match_day.start_time,
-                'end_time': match_day.end_time
-            })
-
-    tutor_colors = dict(zip([tutor.id for tutor in all_tutors], map(rgb_to_hex, get_n_hues(len(all_tutors)))))
-
-    current_week = date.today().isocalendar()[1]
-
-    print_matches()
+    #print_matches()
+    print("TEST")
     return redirect(url_for('views.show_matches'))
    # return render_template("match_tutor_child.html", matches=matches_list, user=current_user, get_tutor_name_by_id=get_tutor_name_by_id, get_child_name_by_id=get_child_name_by_id, tutor_colors=tutor_colors, current_week=current_week)
+
 
 
 @views.route('/show-matches')
@@ -522,6 +791,7 @@ def match_tutor_child():
 def show_matches():
     matches_list = []
     matches = db.session.query(Match).all()
+    print("TES33T")
     for match in matches:
         match_days = db.session.query(MatchDay).filter(MatchDay.match_id == match.id).all()
         for match_day in match_days:
@@ -635,7 +905,6 @@ from sqlalchemy import and_
 @login_required
 def edit_match(match_id):
     match = Match.query.get_or_404(match_id)
-    previous_page = request.referrer
 
     if request.method == 'POST':
         checked_days = request.form.getlist('days[]')
@@ -703,25 +972,183 @@ def edit_match(match_id):
 
 
     return render_template('edit_match.html', children=children, tutors =tutors, match=match, user=current_user, match_has_day=match_has_day, match_days=match_days, get_match_time=get_match_time)
-
-
+    
+from sqlalchemy import and_, func
 
 from sqlalchemy import and_, func
+
+@views.route('/get-availability')
+def getAvailability():
+    tutor_id = request.args.get('tutor_id')
+    # Hier musst du den Code schreiben, um die verfügbaren Schüler für den ausgewählten Tutor abzurufen.
+    # Du kannst eine Datenbankabfrage oder eine andere Logik verwenden, um die verfügbaren Schüler basierend auf der Tutor-Verfügbarkeit zu ermitteln.
+    # Die Funktion sollte eine Liste von Schüler-IDs zurückgeben, die zur gleichen Zeit wie der ausgewählte Tutor verfügbar sind.
+    # Hier ist ein fiktives Beispiel, wie die Funktion aussehen könnte:
+    
+    tutor = Tutor.query.filter_by(id=tutor_id).first()
+    if not tutor:
+        return []  # Kein Tutor mit dieser ID gefunden
+    
+    # Beispiel: Holen der verfügbaren Schüler basierend auf der Tutor-Verfügbarkeit
+    available_children = []
+    
+    # Annahme: Du hast eine Tabelle "Availability" mit Tutor-IDs und Schüler-IDs, um die Verfügbarkeit zu verfolgen
+    availabilities = Availability.query.filter_by(tutor_id=tutor.id).all()
+    
+    for availability in availabilities:
+        # Füge die Schüler-IDs zur Liste der verfügbaren Schüler hinzu
+        available_children.append(availability.child_id)
+    
+    return [] #available_children
+
+
+@views.route('/get-tutors') 
+def getTutors():
+    child_id = request.args.get('child_id')
+    # Hier musst du den Code schreiben, um die verfügbaren Tutoren für den ausgewählten Schüler abzurufen.
+    # Du kannst eine Datenbankabfrage oder eine andere Logik verwenden, um die verfügbaren Tutoren basierend auf der Schülerverfügbarkeit zu ermitteln.
+    # Die Funktion sollte eine Liste von Tutor-IDs zurückgeben, die zur gleichen Zeit wie der ausgewählte Schüler verfügbar sind.
+    # Hier ist ein fiktives Beispiel, wie die Funktion aussehen könnte:
+    
+    child = Child.query.filter_by(id=child_id).first()
+    if not child:
+        return []  # Kein Schüler mit dieser ID gefunden
+    
+    # Beispiel: Holen der verfügbaren Tutoren basierend auf der Schülerverfügbarkeit
+    available_tutors = []
+    
+    # Annahme: Du hast eine Tabelle "Availability" mit Tutor-IDs und Schüler-IDs, um die Verfügbarkeit zu verfolgen
+    availabilities = Availability.query.filter_by(child_id=child.id).all()
+    
+    for availability in availabilities:
+        # Füge die Tutor-IDs zur Liste der verfügbaren Tutoren hinzu
+        available_tutors.append(availability.tutor_id)
+    
+    return [] #available_tutors
+
+
+
+def findTutorsForChild(child_id, tutors):
+    #Filter die Tutoren, die zeitlich nicht zum Schüler passen
+    child = Child.query.get(child_id)
+    if child:
+            print("TEST")
+            # Liste der verfügbaren Tutoren
+            available_tutors = []
+            for tutor in tutors:
+                # Prüfen Sie jede Verfügbarkeit des Tutors und des Kindes
+                for tutor_availability in tutor.availability:
+                    for child_availability in child.days:
+                        if tutor in available_tutors:
+                            break
+                        # Wenn der Wochentag und die Zeiten übereinstimmen, fügen Sie den Tutor der Liste hinzu
+                        if tutor_availability.day == child_availability.day and \
+                                tutor_availability.start_time <= child_availability.start_time and \
+                                tutor_availability.end_time >= child_availability.end_time:
+                            print(tutor.name)
+                            possibleSlots = findPossibleTimeSlots(child_id, tutor.id)
+                            if any(childSlots and tutorSlots for day, childSlots, tutorSlots in possibleSlots):
+                                available_tutors.append(tutor)                              
+                                break
+            print(len(available_tutors))
+            return available_tutors
+    
+
+
+
+def findPossibleTimeSlots(child_id, tutor_id):
+    # Holen des Child-Objekts
+    child = Child.query.get(child_id)
+    if not child:
+        print(f"Child with ID {child_id} does not exist.")
+        return None
+    
+    # Holen des Tutor-Objekts
+    tutor = Tutor.query.get(tutor_id)
+    if not tutor:
+        print(f"Tutor with ID {tutor_id} does not exist.")
+        return None
+    
+    # Holen der verfügbaren Tage des Schülers
+    child_days = set([availability.day for availability in child.days])
+    
+    # Holen der verfügbaren Tage des Tutors
+    tutor_days = set([availability.day for availability in tutor.availability])
+    
+    # Gemeinsame verfügbare Tage ermitteln
+    available_days = child_days.intersection(tutor_days)
+    
+    # Holen aller Matches für child_id oder tutor_id
+    matches = Match.query.filter((Match.child_id == child_id) | (Match.tutor_id == tutor_id)).all()
+    
+    available_slots = []
+    
+    for day in available_days:
+        child_slots = []
+        tutor_slots = []
+        
+        # Schüler-Zeitfenster durchlaufen
+        for availability in child.days:
+            if availability.day == day:
+                start_time = availability.start_time
+                end_time = availability.end_time
+                child_slots.append((start_time, end_time))
+        
+        # Tutor-Zeitfenster durchlaufen
+        for availability in tutor.availability:
+            if availability.day == day:
+                start_time = availability.start_time
+                end_time = availability.end_time
+                tutor_slots.append((start_time, end_time))
+        
+        # Überprüfen auf Überschneidungen mit bereits eingeplanten Matches
+        for match in matches:
+            match_days = MatchDay.query.filter_by(match_id=match.id, day=day).all()
+            for match_day in match_days:
+                match_start_time = match_day.start_time
+                match_end_time = match_day.end_time
+                
+                # Überprüfen auf Überschneidungen mit Schüler-Zeitfenstern
+                for slot in child_slots[:]:
+                    if doTimeSlotsOverlap(slot[0], slot[1], match_start_time, match_end_time):
+                        child_slots.remove(slot)
+                
+                # Überprüfen auf Überschneidungen mit Tutor-Zeitfenstern
+                for slot in tutor_slots[:]:
+                    if doTimeSlotsOverlap(slot[0], slot[1], match_start_time, match_end_time):
+                        tutor_slots.remove(slot)
+        
+        if child_slots and tutor_slots:
+            available_slots.append((day, child_slots, tutor_slots))
+    
+    print(available_slots)
+    return available_slots
+
+
+
+def doTimeSlotsOverlap(start_time1, end_time1, start_time2, end_time2):
+    return start_time1 <= end_time2 and start_time2 <= end_time1
+
+
+
+
+
+
 @views.route('/create-match', methods=['GET', 'POST'])
 @login_required
 def create_match():
     if request.method == 'POST':
+        print("TEST")
         checked_days = request.form.getlist('days[]')
 
-        # create new match
-        tutor_name = request.form.get('tutor_name')
-        tutor = Tutor.query.filter_by(name=tutor_name).first()
+        # Erstelle neues Match
+        tutor_id = request.form.get('tutor_name')  # Hier den richtigen Namen des Formularfelds verwenden
+        tutor = Tutor.query.filter_by(id=tutor_id).first()
         if not tutor:
             flash('Tutor does not exist!', category='error')
             return redirect(url_for('views.create_match'))
-
-        child_name = request.form.get('child_name')
-        child = Child.query.filter_by(name=child_name).first()
+        child_id = request.form.get('child_name')  # Hier den richtigen Namen des Formularfelds verwenden
+        child = Child.query.filter_by(id=child_id).first()
         if not child:
             flash('Child does not exist!', category='error')
             return redirect(url_for('views.create_match'))
@@ -729,26 +1156,32 @@ def create_match():
         max_match_id = db.session.query(func.max(Match.id)).scalar()
         new_match_id = max_match_id + 1 if max_match_id else 1
 
-
-        match = Match(id = new_match_id, tutor_id=tutor.id, tutor_name=tutor.name, child_id=child.id, child_name=child.name)
+        match = Match(
+            id=new_match_id,
+            tutor_id=tutor.id,
+            tutor_name=tutor.name,
+            child_id=child.id,
+            child_name=child.name
+        )
         db.session.add(match)
 
-        # add match days for checked days
+        # Füge Match-Days für ausgewählte Tage hinzu
         for day in checked_days:
             start_time_str = request.form.get(f'{day}_start_time')
             end_time_str = request.form.get(f'{day}_end_time')
 
-
-
             if start_time_str and end_time_str:
                 start_time_str = start_time_str[:5]
                 end_time_str = end_time_str[:5]
-                print(start_time_str)
-                print(end_time_str)
                 start_time = datetime.strptime(start_time_str, '%H:%M').time()
                 end_time = datetime.strptime(end_time_str, '%H:%M').time()
 
-                match_day = MatchDay(match_id=match.id, day=day, start_time=start_time, end_time=end_time)
+                match_day = MatchDay(
+                    match_id=match.id,
+                    day=day,
+                    start_time=start_time,
+                    end_time=end_time
+                )
                 db.session.add(match_day)
 
         db.session.commit()
@@ -756,10 +1189,65 @@ def create_match():
         flash('Match created!', category='success')
         return redirect(url_for('views.list_matches'))
 
+    show_only_students_without_tutor = request.args.get('show_only_students_without_tutor') == 'true'
+    show_only_tutors_without_schedule = request.args.get('show_only_tutors_without_schedule') == 'true'
+
+    tutor_id = request.args.get('tutor_id')
+    if tutor_id is not None:
+        try:
+            tutor_id = int(tutor_id)
+        except ValueError:
+            tutor_id = None
+    child_id = request.args.get('child_id')
+    if child_id is not None:
+        try:
+            child_id = int(child_id)
+        except ValueError:
+            child_id = None    
+
     tutors = Tutor.query.all()
     children = Child.query.all()
+    matches = Match.query.all()
 
-    return render_template('create_match.html', tutors=tutors, children=children, user=current_user, match_has_day=match_has_day, get_match_time=get_match_time)
+
+    possibleTimes = {} 
+    print("TEST")
+
+    if child_id and tutor_id: # 
+        possibleTimes = findPossibleTimeSlots(child_id, tutor_id)
+        print(possibleTimes)
+    #Tutoren finden die zu Schüler passen würde
+    elif child_id:
+        tutors = findTutorsForChild(child_id, tutors)
+    elif tutor_id:
+        print("TODO")
+
+
+    matched_child_ids = set(match.child_id for match in matches)
+    children_without_tutor = [child for child in children if child.id not in matched_child_ids]
+    children_without_tutor = [child.to_dict() for child in children_without_tutor]
+
+    if show_only_students_without_tutor:
+        children_to_show = children_without_tutor
+    else:
+        children_to_show = [child.to_dict() for child in children]
+
+    matched_tutor_ids = set(match.tutor_id for match in matches)
+    tutors_to_show = []
+
+    for tutor in tutors:
+        tutor_dict = tutor.to_dict()
+        tutor_dict['weekly_hours'] = sum(1 for match in matches if match.tutor_id == tutor.id for match_day in match.days)
+        tutors_to_show.append(tutor_dict)
+
+    if show_only_tutors_without_schedule:
+        tutors_to_show = [tutor for tutor in tutors_to_show if tutor['weekly_hours'] == 0]
+
+
+    return render_template('create_match.html', tutors=tutors_to_show, children=children_to_show, user=current_user, show_only_students_without_tutor=show_only_students_without_tutor,
+        show_only_tutors_without_schedule=show_only_tutors_without_schedule, tutor_id=tutor_id, child_id=child_id, possibleTimes=possibleTimes)
+
+
 
 
 # @views.route('/edit-match/<int:match_id>', methods=['GET', 'POST'])
@@ -1044,6 +1532,53 @@ def edit_child(child_id):
                     availability = ChildAvailability(child_id=child.id, day=day, start_time=start_time, end_time=end_time)
                     db.session.add(availability)
 
+
+        geb_datum_str = request.form.get('geb_datum')
+        year, month, day = map(int, geb_datum_str.split('-'))
+        child.geb_datum = date(year, month, day)
+
+        child.geschlecht = request.form.get('geschlecht')
+        child.geb_ort = request.form.get('geb_ort')
+        child.einreise_deutschland = request.form.get('einreise_deutschland')
+        child.herkunftsland_mutter = request.form.get('herkunftsland_mutter')
+        child.herkunftsland_vater = request.form.get('herkunftsland_vater')
+        child.beruf_mutter = request.form.get('beruf_mutter')
+        child.beruf_vater = request.form.get('beruf_vater')
+        child.bemerkungen = request.form.get('bemerkungen')
+        child.lehrer_name = request.form.get('lehrer_name')
+        child.lehrer_telefon = request.form.get('lehrer_telefon')
+        child.lehrer_email = request.form.get('lehrer_email')
+        child.zahlung_jc = bool(request.form.get('zahlung_jc'))
+        child.zahlung_wohngeld = bool(request.form.get('zahlung_wohngeld'))
+        child.zahlung_kinderzuschlag = bool(request.form.get('zahlung_kinderzuschlag'))
+        child.zahlung_asylbewerber = bool(request.form.get('zahlung_asylbewerber'))
+        child.zahlung_privat = bool(request.form.get('zahlung_privat'))
+        child.bg_nummer = request.form.get('bg_nummer')
+        child.buT_nummer = request.form.get('buT_nummer')
+        child.zeitraum = request.form.get('zeitraum')
+        child.foerderart = request.form.get('foerderart')
+        child.bewilligte_stunden = request.form.get('bewilligte_stunden')
+        child.lernort = request.form.get('lernort')
+
+        unavailable_time_slots = []
+        unavailable_start_dates = request.form.getlist('unavailable_start_date[]')
+        unavailable_end_dates = request.form.getlist('unavailable_end_date[]')
+        unavailable_notes = request.form.getlist('unavailable_note[]')
+
+        for start_date, end_date, note in zip(unavailable_start_dates, unavailable_end_dates, unavailable_notes):
+            if start_date and end_date and note:
+                start_date_str = request.form.get('start_date')
+                year, month, day = map(int, start_date_str.split('-'))
+                start_date = date(year, month, day)
+
+                year, month, day = map(int, end_date.split('-'))
+                end_date_obj = date(year, month, day)
+
+                unavailable_time_slot = ChildUnavailableTimeSlot(start_date=start_date, end_date=end_date_obj, note=note)
+                unavailable_time_slots.append(unavailable_time_slot)
+
+        child.unavailable_time_slots = unavailable_time_slots
+
         db.session.commit()
 
         flash('Child updated!', category='success')
@@ -1166,3 +1701,4 @@ def delete_tutor(tutor_id):
     db.session.delete(tutor)
     db.session.commit()
     return redirect(url_for('views.list_tutors'))  # leitet den Benutzer zur Indexseite um
+

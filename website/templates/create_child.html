@@ -116,6 +116,141 @@
     <input type="text" class="form-control" id="native_language" name="native_language" placeholder="Muttersprache eingeben">
   </div>
   
+  <div class="form-group">
+    <label for="geb_datum">Geburtsdatum</label>
+    <input type="date" class="form-control" id="geb_datum" name="geb_datum">
+  </div>
+  
+  <div class="form-group">
+    <label for="geschlecht">Geschlecht</label>
+    <select class="form-control" id="geschlecht" name="geschlecht">
+      <option value="m">Männlich</option>
+      <option value="w">Weiblich</option>
+      <option value="d">Divers</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="geb_ort">Geburtsort</label>
+    <input type="text" class="form-control" id="geb_ort" name="geb_ort" placeholder="Geburtsort eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label for="einreise_deutschland">Einreise nach Deutschland</label>
+    <input type="text" class="form-control" id="einreise_deutschland" name="einreise_deutschland" placeholder="Einreise nach Deutschland">
+  </div>
+  
+  <div class="form-group">
+    <label for="herkunftsland_mutter">Herkunftsland der Mutter</label>
+    <input type="text" class="form-control" id="herkunftsland_mutter" name="herkunftsland_mutter" placeholder="Herkunftsland der Mutter">
+  </div>
+  
+  <div class="form-group">
+    <label for="herkunftsland_vater">Herkunftsland des Vaters</label>
+    <input type="text" class="form-control" id="herkunftsland_vater" name="herkunftsland_vater" placeholder="Herkunftsland des Vaters">
+  </div>
+  
+  <div class="form-group">
+    <label for="beruf_mutter">Beruf der Mutter</label>
+    <input type="text" class="form-control" id="beruf_mutter" name="beruf_mutter" placeholder="Beruf der Mutter">
+  </div>
+  
+  <div class="form-group">
+    <label for="beruf_vater">Beruf des Vaters</label>
+    <input type="text" class="form-control" id="beruf_vater" name="beruf_vater" placeholder="Beruf des Vaters">
+  </div>
+  
+  <div class="form-group">
+    <label for="bemerkungen">Bemerkungen</label>
+    <textarea class="form-control" id="bemerkungen" name="bemerkungen" rows="3"></textarea>
+  </div>
+  
+  <div class="form-group">
+    <label for="lehrer_name">Lehrername</label>
+    <input type="text" class="form-control" id="lehrer_name" name="lehrer_name" placeholder="Lehrername eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label for="lehrer_telefon">Lehrertelefonnummer</label>
+    <input type="tel" class="form-control" id="lehrer_telefon" name="lehrer_telefon" placeholder="Lehrertelefonnummer eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label for="lehrer_email">Lehreremail</label>
+    <input type="email" class="form-control" id="lehrer_email" name="lehrer_email" placeholder="Lehreremail eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label>Zahlungen</label><br>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="zahlung_jc" name="zahlung_jc" value="true">
+      <label class="form-check-label" for="zahlung_jc">Jobcenter</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="zahlung_wohngeld" name="zahlung_wohngeld" value="true">
+      <label class="form-check-label" for="zahlung_wohngeld">Wohngeld</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="zahlung_kinderzuschlag" name="zahlung_kinderzuschlag" value="true">
+      <label class="form-check-label" for="zahlung_kinderzuschlag">Kinderzuschlag</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="zahlung_asylbewerber" name="zahlung_asylbewerber" value="true">
+      <label class="form-check-label" for="zahlung_asylbewerber">Asylbewerberleistungen</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input type="checkbox" class="form-check-input" id="zahlung_privat" name="zahlung_privat" value="true">
+      <label class="form-check-label" for="zahlung_privat">Privat</label>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <label for="bg_nummer">BG-Nummer</label>
+    <input type="text" class="form-control" id="bg_nummer" name="bg_nummer" placeholder="BG-Nummer eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label for="buT_nummer">BuT-Nummer</label>
+    <input type="text" class="form-control" id="buT_nummer" name="buT_nummer" placeholder="BuT-Nummer eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label for="zeitraum">Zeitraum</label>
+    <input type="text" class="form-control" id="zeitraum" name="zeitraum" placeholder="Zeitraum eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label for="foerderart">Förderart</label>
+    <input type="text" class="form-control" id="foerderart" name="foerderart" placeholder="Förderart eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label for="bewilligte_stunden">Bewilligte Stunden</label>
+    <input type="text" class="form-control" id="bewilligte_stunden" name="bewilligte_stunden" placeholder="Bewilligte Stunden eingeben">
+  </div>
+  
+  <div class="form-group">
+    <label for="lernort">Lernort</label>
+    <select class="form-control" id="lernort" name="lernort">
+      <option value="hs">Homeschooling</option>
+      <option value="sc">Schule</option>
+    </select>
+  </div>
+  
+  <!-- Unavailable Time Slots -->
+  <div class="form-group">
+    <label for="unavailable_time_slots">Nicht verfügbare Zeitfenster</label>
+    <div id="unavailable_time_slots_container">
+      <div class="unavailable-time-slot">
+        <input type="date" class="form-control" name="unavailable_start_date[]" placeholder="Startdatum">
+        <input type="date" class="form-control" name="unavailable_end_date[]" placeholder="Enddatum">
+        <input type="text" class="form-control" name="unavailable_note[]" placeholder="Notiz">
+      </div>
+    </div>
+    <button type="button" class="btn btn-secondary" id="add_unavailable_time_slot">Weiteres Zeitfenster hinzufügen</button>
+  </div>
+
+
   <br />
   <button type="submit" class="btn btn-primary">Submit</button>
 </form>
